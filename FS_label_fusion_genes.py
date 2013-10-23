@@ -247,19 +247,19 @@ def read_refseqid(path2files):
 	return refseqid_ensemblid
 
 
-def gene_symbol2ensemblID(ensemblID_genesymbol, missing_data, gene_symbol):
+def gene_symbol2ensembl_id(ensemblid_genesymbol, missing_data, gene_symbol):
 	"""
 	fuction for converting gene_symbols to ensembl_IDs
 	careful: LOC541471 changed
 	"""
-	if ensemblID_genesymbol.has_key(gene_symbol):
-		ensemblID = ensemblID_genesymbol[gene_symbol]
+	if ensemblid_genesymbol.has_key(gene_symbol):
+		ensemblid = ensemblid_genesymbol[gene_symbol]
 	elif missing_data.has_key(gene_symbol):
-		ensemblID = missing_data[gene_symbol]
+		ensemblid = missing_data[gene_symbol]
 	else:
-		ensemblID = gene_symbol #keep gene_symbol if nothing was found
+		ensemblid = gene_symbol #keep gene_symbol if nothing was found
 
-	return ensemblID
+	return ensemblid
 
 
 def refseqid2ensemblid(refseqid_ensemblid, refseqid):
@@ -268,6 +268,8 @@ def refseqid2ensemblid(refseqid_ensemblid, refseqid):
 	else:
 		ensemblid = refseqid #keep gene_symbol if nothing was found
 	return ensemblid
+
+
 
 
 def min_dis_gene(data, genes, options, label_col,
@@ -299,8 +301,8 @@ def min_dis_gene(data, genes, options, label_col,
 				b = refseqid2ensemblid(line[col_num_gene1[options.fusion_detection_algorithm]])
 	
 		else:
-				a = gene_symbol2ensemblID(line[col_num_gene1[options.fusion_detection_algorithm]])
-				b = gene_symbol2ensemblID(line[col_num_gene2[options.fusion_detection_algorithm]])
+				a = gene_symbol2ensembl_id(line[col_num_gene1[options.fusion_detection_algorithm]])
+				b = gene_symbol2ensembl_id(line[col_num_gene2[options.fusion_detection_algorithm]])
 	
 	
 		if (genes.has_key(a) and
@@ -372,8 +374,8 @@ def filter_gene_pairs(data, gene_pairs, no_proteins, label_col,
 
 		else:
 			#print "Entered else statement,..."
-			a = gene_symbol2ensemblID(line[col_num_gene1[options.fusion_detection_algorithm]])
-			b = gene_symbol2ensemblID(line[col_num_gene2[options.fusion_detection_algorithm]])
+			a = gene_symbol2ensembl_id(line[col_num_gene1[options.fusion_detection_algorithm]])
+			b = gene_symbol2ensembl_id(line[col_num_gene2[options.fusion_detection_algorithm]])
 	
 			#flag = False
 		g='\t'.join(sorted([a,b]))
