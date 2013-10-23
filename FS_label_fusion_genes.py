@@ -270,6 +270,35 @@ def refseqid2ensemblid(refseqid_ensemblid, refseqid):
 	return ensemblid
 
 
+def get_map_genes(line, options, col_num_gene1, col_num_gene2):
+
+	if options.fusion_detection_algorithm=='defuse':
+		a = line[col_num_gene1[options.fusion_detection_algorithm]]
+		b = line[col_num_gene2[options.fusion_detection_algorithm]]
+
+	elif options.fusion_detection_algorithm =='fusionmap':
+		split_gene1 = line[col_num_gene1[options.fusion_detection_algorithm]].split(",")
+		split_gene2 = line[col_num_gene2[options.fusion_detection_algorithm]].split(",")
+
+	#TODO: make a for loop here
+		if type(split_gene1) is list:
+			split_refid = split_gene1[0].split("_")[0] + "_" + split_gene1[0].split("_")[1]
+			a = refseqid2ensemblid(split_refid)
+
+		else:
+			a = refseqid2ensemblid(line[col_num_gene1[options.fusion_detection_algorithm]])
+
+		if type(split_gene2) is list:
+			split_refid = split_gene2[0].split("_")[0] + "_" + split_gene2[0].split("_")[1]
+			b = refseqid2ensemblid(split_refid)
+
+		else:
+				b = refseqid2ensemblid(line[col_num_gene1[options.fusion_detection_algorithm]])
+
+	else:
+		a = gene_symbol2ensembl_id(line[col_num_gene1[options.fusion_detection_algorithm]])
+		b = gene_symbol2ensembl_id(line[col_num_gene2[options.fusion_detection_algorithm]])
+	return a,b
 
 
 def min_dis_gene(data, genes, options, label_col,
@@ -279,32 +308,9 @@ def min_dis_gene(data, genes, options, label_col,
 	"""
 	temp = []
 	for line in data:
-		if options.fusion_detection_algorithm=='defuse':
-			a = line[col_num_gene1[options.fusion_detection_algorithm]]
-			b = line[col_num_gene2[options.fusion_detection_algorithm]]
-		elif options.fusion_detection_algorithm =='fusionmap':
-			split_gene1 = line[col_num_gene1[options.fusion_detection_algorithm]].split(",")
-			split_gene2 = line[col_num_gene2[options.fusion_detection_algorithm]].split(",")
-	
-			if type(split_gene1) is list:
-				split_refid = split_gene1[0].split("_")[0] + "_" + split_gene1[0].split("_")[1]
-				a = refseqid2ensemblid(split_refid)
 
-			else:
-				a = refseqid2ensemblid(line[col_num_gene1[options.fusion_detection_algorithm]])
+		(a,b) = get_map_genes(line, options, col_num_gene1, col_num_gene2)
 
-			if type(split_gene2) is list:
-				split_refid = split_gene2[0].split("_")[0] + "_" + split_gene2[0].split("_")[1]
-				b = refseqid2ensemblid(split_refid)
-                                        	
-			else:
-				b = refseqid2ensemblid(line[col_num_gene1[options.fusion_detection_algorithm]])
-	
-		else:
-				a = gene_symbol2ensembl_id(line[col_num_gene1[options.fusion_detection_algorithm]])
-				b = gene_symbol2ensembl_id(line[col_num_gene2[options.fusion_detection_algorithm]])
-	
-	
 		if (genes.has_key(a) and
 			genes.has_key(b) and
 			genes[a]["chrom"] == genes[b]["chrom"] and
@@ -329,59 +335,18 @@ def min_dis_gene(data, genes, options, label_col,
 	return temp
 
 
-def filter_gene_pairs(data, gene_pairs, no_proteins, label_col,
-					  options, col_num_gene1, col_num_gene2):
+def filter_gene_pairs(data, gene_pairs, no_proteins,
+					  col_num_gene1, col_num_gene2,
+					  label_col, options):
 	"""
 	for gene pairs
 	"""
+	temp = []
 	for line in data:
-		if options.fusion_detection_algorithm == 'defuse':
-			a = line[col_num_gene1[options.fusion_detection_algorithm]]
-			b = line[col_num_gene2[options.fusion_detection_algorithm]]
-
-		elif (options.fusion_detection_algorithm=='fusionmap' and (options.label=='healthy_less_cons' or options.label=='healthy_cons')):
-			#print "Annotating healthy_gene_symbol,..."i
-            #TODO: remove hard coding of column number
-			split_gene1 = line[9].split(",") #hard code column number
-			split_gene2 = line[13].split(",")
-			if type(split_gene1) is list:
-				a = split_gene1[0]
-			else:
-				a = line[col_num_gene1[options.fusion_detection_algorithm]]
-			if type(split_gene2) is list:
-				b = split_gene2[0]
-			else:
-				b = line[col_num_gene1[options.fusion_detection_algorithm]]
-
-		elif options.fusion_detection_algorithm=='fusionmap':
-			split_gene1 = line[col_num_gene1[options.fusion_detection_algorithm]].split(",")
-			split_gene2 = line[col_num_gene2[options.fusion_detection_algorithm]].split(",")
-			refid = line[col_num_gene1[options.fusion_detection_algorithm]]
-			split_refid = refid.split("_")[0] + "_" + refid.split("_")[1]
-	
-			if type(split_gene1) is list:
-				split_refid = split_gene1[0].split("_")[0] + "_" + split_gene1[0].split("_")[1]
-				a = refseqid2ensemblid(split_refid)
-			else:
-				a = refseqid2ensemblid(split_refid)
-
-			if type(split_gene2) is list:
-				split_refid = split_gene2[0].split("_")[0] + "_" + split_gene2[0].split("_")[1]
-				b = refseqid2ensemblid(split_refid)
-
-			else:
-				b = refseqid2ensemblid(split_refid)
-
-		else:
-			#print "Entered else statement,..."
-			a = gene_symbol2ensembl_id(line[col_num_gene1[options.fusion_detection_algorithm]])
-			b = gene_symbol2ensembl_id(line[col_num_gene2[options.fusion_detection_algorithm]])
-	
-			#flag = False
+		(a,b) = get_map_genes(line, options, col_num_gene1, col_num_gene2)
 		g='\t'.join(sorted([a,b]))
 		print g
 
-		temp = []
 		if (g in gene_pairs) or (a in no_proteins) or (b in no_proteins):
 			print g
 			if label_col:
