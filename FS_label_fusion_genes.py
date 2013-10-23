@@ -24,32 +24,32 @@ def parse_options(parser):
                       type="string",
                       dest="input_filter_gene_pairs_filename",
                       help="""The input text file tab separated format
-						   containing gene pairs which are used as
-						   filter for labeling (two columns and no header;
-						   the order of genes in the gene pairs is ignored).""")
+                           containing gene pairs which are used as
+                           filter for labeling (two columns and no header;
+                           the order of genes in the gene pairs is ignored).""")
 
     parser.add_option("--filter_genes",
                       action="store",
                       type="string",
                       dest="input_filter_genes_filename",
                       help="""The input text file format containing genes which
-						   are used as filter for labeling.""")
+                           are used as filter for labeling.""")
 
     parser.add_option("--label",
                       action="store",
                       type="string",
                       dest="label",
                       help="""Label used to mark the candidate fusion genes
-						   which are founf in the filter.""")
+                            which are founf in the filter.""")
 
     parser.add_option("--output_fusion_genes",
                       action="store",
                       type="string",
                       dest="output_fusion_genes_filename",
                       help="""The output text tab-separated file containing
-						   the candidate fusion genes which are found in the
-						   filter. The format is as the input file and sorted
-						   by counts column.""")
+                           the candidate fusion genes which are found in the
+                           filter. The format is as the input file and sorted
+                           by counts column.""")
 
     parser.add_option("--fusion_detection_algorithm",
                       action="store",
@@ -68,16 +68,17 @@ def parse_options(parser):
                       type="string",
                       dest="input_min_dist_gene_gene_database_filename",
                       help="""Database with exons position on chromosomes which is used
-							 to extract the gene positions, e.g. 'more_exons_ensembl.txt'.
-							 This is needed only when '--min_distance_gene_gene' is used.""")
+                           to extract the gene positions, e.g. 'more_exons_ensembl.txt'.
+                           This is needed only when '--min_distance_gene_gene' is used.""")
 
     (options, args) = parser.parse_args()
 
-    print "input_fusion_genes_filename", options.input_fusion_genes_filename
-    print "input_filter_gene_pairs_filename", options.input_filter_gene_pairs_filename
-    print "output_fusion_genes_filename", options.output_fusion_genes_filename
-    print "label", options.label
-    print "fusion_detection_algorithm", options.fusion_detection_algorithm
+    print "Input parameters"
+    print "[1] input_fusion_genes_filename: ", options.input_fusion_genes_filename
+    print "[2] input_filter_gene_pairs_filename: ", options.input_filter_gene_pairs_filename
+    print "[3] output_fusion_genes_filename:", options.output_fusion_genes_filename
+    print "[4] label:", options.label
+    print "[5] fusion_detection_algorithm: ", options.fusion_detection_algorithm, "\n"
 
     return options
 
@@ -86,9 +87,7 @@ def validate_options(options, parser):
     """
     Validate user input parameters
     """
-    if not options.input_fusion_genes_filename \
-        or not options.output_fusion_genes_filename \
-        or not options.label:
+    if not ((options.input_fusion_genes_filename and options.output_fusion_genes_filename) and options.label):
         parser.print_help()
         parser.error("One of the options has not been specified.")
         sys.exit(1)
@@ -149,12 +148,12 @@ def read_exon_database(options):
                  for line in file(options.input_min_dist_gene_gene_database_filename, 'r').readlines()
                  if line.rstrip('\r\n')]
 
-        exons = [(line[1], # gene_id              0
-                  line[7], # gene_start           1
-                  line[8], # gene_end             2
-                  line[11], # strand               3
-                  line[12] # chromosome           4
-                 ) for line in exons]
+        exons = [(line[1],
+                  line[7],
+                  line[8],
+                  line[11],
+                  line[12])
+                 for line in exons]
 
         for line in exons:
             gn = line[0]
@@ -219,9 +218,9 @@ def read_missing_data(path2files):
                           for line in file(missing_data_f, 'r').readlines() if line.rstrip('\r\n')]
 
     for line in missing_data_input:
-        ensemblID_miss = line[0]
+        ensembl_id_miss = line[0]
         genesymbol_miss = line[1]
-        missing_data[genesymbol_miss] = ensemblID_miss
+        missing_data[genesymbol_miss] = ensembl_id_miss
 
     return missing_data
 
@@ -251,21 +250,21 @@ def gene_symbol2ensembl_id(ensemblid_genesymbol, missing_data, gene_symbol):
     fuction for converting gene_symbols to ensembl_IDs
     careful: LOC541471 changed
     """
-    if ensemblid_genesymbol.has_key(gene_symbol):
+    if gene_symbol in ensemblid_genesymbol:
         ensemblid = ensemblid_genesymbol[gene_symbol]
-    elif missing_data.has_key(gene_symbol):
+    elif gene_symbol in missing_data:
         ensemblid = missing_data[gene_symbol]
     else:
-        ensemblid = gene_symbol #keep gene_symbol if nothing was found
+        ensemblid = gene_symbol  # keep gene_symbol if nothing was found
 
     return ensemblid
 
 
 def refseqid2ensemblid(refseqid_ensemblid, refseqid):
-    if refseqid_ensemblid.has_key(refseqid):
+    if refseqid in refseqid_ensemblid:
         ensemblid = refseqid_ensemblid[refseqid]
     else:
-        ensemblid = refseqid #keep gene_symbol if nothing was found
+        ensemblid = refseqid  # keep gene_symbol if nothing was found
     return ensemblid
 
 
@@ -309,15 +308,15 @@ def min_dis_gene(data, genes, options, label_col,
 
         (a, b) = get_map_genes(line, options, col_num_gene1, col_num_gene2)
 
-        if (genes.has_key(a) and
-                genes.has_key(b) and
+        if (a in genes and
+                b in genes and
                     genes[a]["chrom"] == genes[b]["chrom"] and
                     genes[a]["strand"] == genes[b]["strand"] and
                     min([abs(genes[a]["start"] - genes[b]["start"]),
                          abs(genes[a]["start"] - genes[b]["end"]),
                          abs(genes[a]["end"] - genes[b]["start"]),
-                         abs(genes[a]["end"] - genes[b]["end"])]) <= options.input_min_dist_gene_gene
-        ):
+                         abs(genes[a]["end"] - genes[b]["end"])]) <= options.input_min_dist_gene_gene):
+
             if label_col:
                 temp.append(line + [options.label])
             else:
@@ -408,5 +407,3 @@ def main(argv=None):
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
