@@ -8,6 +8,7 @@ Label gene fusions -
 
 import sys
 import optparse
+import re
 
 
 def parse_options(parser):
@@ -269,30 +270,34 @@ def refseqid2ensemblid(refseqid_ensemblid, refseqid):
 
 
 def get_map_genes(line, options, col_num_gene1, col_num_gene2):
+
+    def loop_fusionmap_refseqids(options, col_num_gene):
+
+        split_genes = line[col_num_gene[options.fusion_detection_algorithm]].split(",")
+        temp = []
+        for split_gene in split_genes:
+            # eg NM_237292 [0] NM [1] 237292
+            split_refid = split_gene.split("_")[0] + "_" + split_gene.split("_")[1]
+            temp.append(refseqid2ensemblid(split_refid))
+
+        #TODO: cleanup - only one return statement
+        #take the first element in temp that starts with ENSG
+        for item in temp:
+            match_obj = re.match(r'^ENSG', item)
+            if match_obj:
+                return item
+
+        return temp[0]  # if no match was found take first element
+
     if options.fusion_detection_algorithm == 'defuse':
         a = line[col_num_gene1[options.fusion_detection_algorithm]]
         b = line[col_num_gene2[options.fusion_detection_algorithm]]
 
     elif options.fusion_detection_algorithm == 'fusionmap':
-        split_gene1 = line[col_num_gene1[options.fusion_detection_algorithm]].split(",")
-        split_gene2 = line[col_num_gene2[options.fusion_detection_algorithm]].split(",")
+        a = loop_fusionmap_refseqids(options, col_num_gene1)
+        b = loop_fusionmap_refseqids(options, col_num_gene2)
 
-        #TODO: make a for loop here
-        if type(split_gene1) is list:
-            split_refid = split_gene1[0].split("_")[0] + "_" + split_gene1[0].split("_")[1]
-            a = refseqid2ensemblid(split_refid)
-
-        else:
-            a = refseqid2ensemblid(line[col_num_gene1[options.fusion_detection_algorithm]])
-
-        if type(split_gene2) is list:
-            split_refid = split_gene2[0].split("_")[0] + "_" + split_gene2[0].split("_")[1]
-            b = refseqid2ensemblid(split_refid)
-
-        else:
-            b = refseqid2ensemblid(line[col_num_gene1[options.fusion_detection_algorithm]])
-
-    else:
+    else:  # tophat-fusion
         a = gene_symbol2ensembl_id(line[col_num_gene1[options.fusion_detection_algorithm]])
         b = gene_symbol2ensembl_id(line[col_num_gene2[options.fusion_detection_algorithm]])
     return a, b
