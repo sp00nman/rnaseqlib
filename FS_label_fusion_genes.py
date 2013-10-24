@@ -269,37 +269,41 @@ def refseqid2ensemblid(refseqid_ensemblid, refseqid):
     return ensemblid
 
 
-def get_map_genes(line, options, col_num_gene1, col_num_gene2):
+def loop_fusionmap_refseqids(refseqid_ensemblid, line, options, col_num_gene):
+    split_genes = line[col_num_gene[options.fusion_detection_algorithm]].split(",")
+    temp = []
+    for split_gene in split_genes:
+        # eg NM_237292 [0] NM [1] 237292
+        split_refid = split_gene.split("_")[0] + "_" + split_gene.split("_")[1]
+        temp.append(refseqid2ensemblid(refseqid_ensemblid, split_refid))
 
-    def loop_fusionmap_refseqids(options, col_num_gene):
+    #TODO: cleanup - only one return statement
+    #take the first element in temp that starts with ENSG
+    for item in temp:
+        match_obj = re.match(r'^ENSG', item)
+        if match_obj:
+            return item
 
-        split_genes = line[col_num_gene[options.fusion_detection_algorithm]].split(",")
-        temp = []
-        for split_gene in split_genes:
-            # eg NM_237292 [0] NM [1] 237292
-            split_refid = split_gene.split("_")[0] + "_" + split_gene.split("_")[1]
-            temp.append(refseqid2ensemblid(split_refid))
+    return temp[0]  # if no match was found take first element
 
-        #TODO: cleanup - only one return statement
-        #take the first element in temp that starts with ENSG
-        for item in temp:
-            match_obj = re.match(r'^ENSG', item)
-            if match_obj:
-                return item
 
-        return temp[0]  # if no match was found take first element
+def get_map_genes(refseqid_ensemblid, ensemblid,
+                  missing_data, line, options,
+                  col_num_gene1, col_num_gene2):
 
     if options.fusion_detection_algorithm == 'defuse':
         a = line[col_num_gene1[options.fusion_detection_algorithm]]
         b = line[col_num_gene2[options.fusion_detection_algorithm]]
 
     elif options.fusion_detection_algorithm == 'fusionmap':
-        a = loop_fusionmap_refseqids(options, col_num_gene1)
-        b = loop_fusionmap_refseqids(options, col_num_gene2)
+        print line
+        a = loop_fusionmap_refseqids(refseqid_ensemblid, line, options, col_num_gene1)
+        b = loop_fusionmap_refseqids(refseqid_ensemblid, line, options, col_num_gene2)
 
     else:  # tophat-fusion
-        a = gene_symbol2ensembl_id(line[col_num_gene1[options.fusion_detection_algorithm]])
-        b = gene_symbol2ensembl_id(line[col_num_gene2[options.fusion_detection_algorithm]])
+        a = gene_symbol2ensembl_id(ensemblid, missing_data, line[col_num_gene1[options.fusion_detection_algorithm]])
+        b = gene_symbol2ensembl_id(ensemblid, missing_data, line[col_num_gene2[options.fusion_detection_algorithm]])
+
     return a, b
 
 
@@ -309,6 +313,7 @@ def min_dis_gene(data, genes, options, label_col,
     deal with the distance between genes and label accordingly
     """
     temp = []
+
     for line in data:
 
         (a, b) = get_map_genes(line, options, col_num_gene1, col_num_gene2)
@@ -337,15 +342,24 @@ def min_dis_gene(data, genes, options, label_col,
     return temp
 
 
-def filter_gene_pairs(data, gene_pairs, no_proteins,
-                      col_num_gene1, col_num_gene2,
-                      label_col, options):
+def filter_gene_pairs(refseqid_ensemblid, ensemblid, missing_data,
+                      data, gene_pairs, no_proteins,
+                      label_col, options, col_num_gene1,
+                      col_num_gene2):
     """
     for gene pairs
     """
+    options = options
+    col_num_gene1 = col_num_gene1
+    col_num_gene2 = col_num_gene2
+    print "options:", options
+    print col_num_gene1
+    print col_num_gene2
     temp = []
+
     for line in data:
-        (a, b) = get_map_genes(line, options, col_num_gene1, col_num_gene2)
+        (a, b) = get_map_genes(refseqid_ensemblid, ensemblid, missing_data,
+                               line, options, col_num_gene1, col_num_gene2)
         g = '\t'.join(sorted([a, b]))
         print g
 
@@ -390,9 +404,9 @@ def main(argv=None):
         label_col = True
         header.append('Fusion_description')
 
-    read_ensembl_id(path2files)
+    refseqid_ensemblid = read_refseqid(path2files)
+    ensemblid = read_ensembl_id(path2files)
     missing_data = read_missing_data(path2files)
-    read_refseqid(path2files)
     no_proteins = read_no_proteins(options)
 
     if options.input_min_dist_gene_gene:
@@ -401,8 +415,9 @@ def main(argv=None):
         genes = read_exon_database(options)
     else:
         gene_pairs = read_gene_pairs(options)
-        temp = filter_gene_pairs(data, gene_pairs, no_proteins,
-                                 label_col, options, col_num_gene1, col_num_gene2)
+        temp = filter_gene_pairs(refseqid_ensemblid, ensemblid, missing_data,
+                                 data, gene_pairs, no_proteins, label_col,
+                                 options, col_num_gene1, col_num_gene2)
 
     data = sorted(temp)
     data.insert(0, header)
