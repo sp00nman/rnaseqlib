@@ -1,4 +1,4 @@
-rnaseq_fusions_workflow
+rnaseq_workflow
 =======================
 
 A collection of workflows and scripts to analyze RNA-seq data. 
