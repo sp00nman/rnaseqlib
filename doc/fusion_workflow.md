@@ -1,4 +1,4 @@
-Detection and filtering of fusions with RNA-seq data
+Detection and filtering of fusions with RNA-seq
 ====================================================
 
 ###Software requirements
