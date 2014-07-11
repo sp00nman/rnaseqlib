@@ -13,7 +13,7 @@ A review/collection of fusion detection tools/algorithm
 
 Benchmark publications
 + [State-of-the-art fusion-finder algorithms sensitivity and specificity.](http://www.ncbi.nlm.nih.gov/pubmed/23555082)
-+ [http://www.ncbi.nlm.nih.gov/pubmed/23815381](http://www.ncbi.nlm.nih.gov/pubmed/23815381)
++ [State of art fusion-finder algorithms are suitable to detect transcription-induced chimeras in normal tissues?](http://www.ncbi.nlm.nih.gov/pubmed/23815381)
 
 ###Sample collection (inhouse)
 [google spreadsheet with rna-seq data of granulocytes](linktospreadsheet)
