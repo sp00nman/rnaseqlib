@@ -80,6 +80,7 @@ Summary table of filters used by fusion detection algorithms.
 
 #####Idea
   + Implement a repetitive sequence filter
+    + UCSC Mappability Track, Repeat Masker Tracks 
     + [Duke Exclude Regions](http://hgdownload.cse.ucsc.edu/goldenPath/hg18/encodeDCC/wgEncodeMapability/) 
     + [DAC Blacklisted Regions](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability)
     + [1000 Genomes Masks](http://www.1000genomes.org/announcements/genome-accessibility-information-now-available-1000-genomes-browser-2012-09-06)
