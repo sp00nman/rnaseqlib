@@ -20,6 +20,9 @@ Benchmark publications
 
 
 ###Post-filtering steps
+
+After read mapping and nominating potential fusion candidates a set of filters is applied based on biological and technical indications.
+
 + Filtering by the number of supporting reads
 + Removing known read-through events (use AceView database)
 + Removing pseudogenes
