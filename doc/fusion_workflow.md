@@ -72,7 +72,8 @@ Summary table of filters used by fusion detection algorithms.
 + Can we use public data/database on germline structural variant calls to filter for gene fusions
   + Most biological database filter for gene IDs (only some databases offer breakpoint positions as well, but most don't)
   + SNP arrays have far too low resolution, CNV information from WGS data could potentially be beneficial for this approach
-  + [Tobias Rausch approach](https://drive.google.com/drive/#folders/0B7sHWemp6jw_Z3FsTWxKcUtNcVk)
+  + [Tobias Rausch approach pdf](https://drive.google.com/drive/#folders/0B7sHWemp6jw_Z3FsTWxKcUtNcVk)
+  + [Tobias Rausch approach code](https://github.com/tobiasrausch/delly/blob/master/python/somaticFilter.py)
 
 ####PROPOSAL 2
 + Detection and filtering of fusions is followed by manually looking at the sequence and blasting the fusion junction to the reference genome. Very often these sequences fall within repetitive sequences, or the 5' and 3' region of the fusion is very similar
@@ -84,6 +85,5 @@ Summary table of filters used by fusion detection algorithms.
     + [1000 Genomes Masks](http://www.1000genomes.org/announcements/genome-accessibility-information-now-available-1000-genomes-browser-2012-09-06)
   + Implement a 5' 3' homology filter
   + [sequence similarity search](http://www.ebi.ac.uk/Tools/sss/)
-
 
 
