@@ -72,6 +72,7 @@ Summary table of filters used by fusion detection algorithms.
 + Most biological database filter for gene IDs (only some databases offer breakpoint positions as well, but most don't)
   + Can we use public data/database on germline structural variant calls to filter for gene fusions
   + SNP arrays have far too low resolution, CNV information from WGS data could potentially be beneficial for this approach
+  + [Tobias Rausch approach](https://drive.google.com/drive/#folders/0B7sHWemp6jw_Z3FsTWxKcUtNcVk)
 
 ####PROPOSAL 2
 + 
