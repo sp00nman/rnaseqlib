@@ -58,17 +58,22 @@ Summary table of filters used by fusion detection algorithms.
 
 ###What can be improved?
 
-#####Literature research
-"Another important group of gene fusions was associated with breakpoints of low-level copy number changes, involving both gains and deletions. These are interesting in the sense that they represent the types of fusion events leading to gene activation with no association with gene amplifications...Fifth, in the vast majority of the fusions (82%), at least one partner gene was located at a copy number breakpoint as revealed by aCGH, indicating that fusion gene formation is closely associated with unbalanced genomic rearrangements, particularly high-level amplifications" [Identification of fusion genes in breast cancer by paired-end RNA-sequencing.](http://genomebiology.com/content/12/1/R6)
+####PROPOSAL 1
+#####Motivation/Literature research
++ "Another important group of gene fusions was associated with breakpoints of low-level copy number changes, involving both gains and deletions. These are interesting in the sense that they represent the types of fusion events leading to gene activation with no association with gene amplifications...Fifth, in the vast majority of the fusions (82%), at least one partner gene was located at a copy number breakpoint as revealed by aCGH, indicating that fusion gene formation is closely associated with unbalanced genomic rearrangements, particularly high-level amplifications" [Identification of fusion genes in breast cancer by paired-end RNA-sequencing.](http://genomebiology.com/content/12/1/R6)
 
-[Identification of somatically acquired rearrangements in cancer using genome-wide massively parallel paired-end sequencing.](http://www.nature.com/ng/journal/v40/n6/fig_tab/ng.128_F3.html)
++ [Identification of somatically acquired rearrangements in cancer using genome-wide massively parallel paired-end sequencing.](http://www.nature.com/ng/journal/v40/n6/fig_tab/ng.128_F3.html)
 
-[My own data](https://docs.google.com/spreadsheets/d/16tYeYdyrk-Qp4HifYMrcTaeaNtB6xcsLNkbW52Lw-6c/edit#gid=0)
+#####My own data
++ [google spreadsheet of detected fusions](https://docs.google.com/spreadsheets/d/16tYeYdyrk-Qp4HifYMrcTaeaNtB6xcsLNkbW52Lw-6c/edit#gid=0)
++ [PIM3-SCO2 fusion](https://drive.google.com/drive/#folders/0B7sHWemp6jw_MUhIbllrNXRqeFk)
 
+#####Idea
 + Most biological database filter for gene IDs (only some databases offer breakpoint positions as well, but most don't)
   + Can we use public data/database on germline structural variant calls to filter for gene fusions
   + SNP arrays have far too low resolution, CNV information from WGS data could potentially be beneficial for this approach
 
+####PROPOSAL 2
 + 
 
 
