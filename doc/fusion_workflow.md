@@ -23,15 +23,15 @@ Benchmark publications
 
 After read mapping and nominating potential fusion candidates a set of filters is applied based on biological and technical indications.
 
-Scoring filters
+**Scoring filters**
 + Filter by the number of encompassing and spanning reads (aka supporting reads)
 
-Technical artefact filters
+**Technical artefact filters**
 + Filtering out fusions which support reads overlap with repetitive elements
 + Removing fusions, which partner genes belong to the same family
 + Evidence from visualization (IGV browser)
 
-Biological filters
+**Biological filters**
 + Removing fusions from healthy individuals
   + [in house](https://docs.google.com/spreadsheet/ccc?key=0ArsHWemp6jw_dGlheGZwT21ONjl0WW9VYVEwWEpyYUE#gid=9) 
 + Removing known/or estimated read-through events
@@ -48,7 +48,7 @@ Biological filters
   + [ChimerDB 2.0 database literature-based annotation](http://ercsb.ewha.ac.kr/FusionGene/)
   + [Cancer Genome Project (CGP) translocations database](http://www.sanger.ac.uk/genetics/CGP/Census/)
 
-Additional filters
+**Additional filters**
 + [Viruses/bacteria/phages genomes database (from the NCBI database)](ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/ (required)
 
 Summary table of filters used by fusion detection algorithms.
