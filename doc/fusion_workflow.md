@@ -32,12 +32,24 @@ Technical artefact filters
 + Evidence from visualization (IGV browser)
 
 Biological filters
+
 + Removing known read-through events (use AceView database)
+..*readthroughs
 + Removing pseudogenes
 + Removing ribosomal genes
++ [ConjoinG database](http://metasystems.riken.jp/conjoing/)
++ [CACG conjoined genes database](http://cgc.kribb.re.kr/map/)
+
+    
++ [COSMIC database](http://cancer.sanger.ac.uk/cancergenome/projects/cosmic/)
++ [TICdb database](http://www.unav.es/genetica/TICdb/)
++ [ChimerDB 2.0 database literature-based annotation](http://ercsb.ewha.ac.kr/FusionGene/)
++ [Cancer Genome Project (CGP) translocations database](http://www.sanger.ac.uk/genetics/CGP/Census/)
++ [IMGT/HLA database](http://www.ebi.ac.uk/ipd/imgt/hla/)
 
 
 Additional filters
++ [Viruses/bacteria/phages genomes database (from the NCBI database)](ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/ (required)
 
 Summary table of filters used by fusion detection algorithms.
 + [The structure of state-of-art gene fusion-finder algorithms. M.Becutti, Aug, 2013](https://www.oapublishinglondon.com/article/617)
