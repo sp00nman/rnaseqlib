@@ -34,7 +34,7 @@ Technical artefact filters
 Biological filters
 
 + Removing known read-through events (use [AceView](http://www.ncbi.nlm.nih.gov/IEB/Research/Acembly/index.html?human) database)
-⋅⋅* readthroughs
+  + readthroughs
 + Removing pseudogenes
 + Removing ribosomal genes
 + [ConjoinG database](http://metasystems.riken.jp/conjoing/)
