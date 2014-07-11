@@ -29,4 +29,4 @@ Benchmark publications
 + Evidence from visualization (IGV browser)
 
 Summary table of filters used by fusion detection algorithms
-![image](img/filters.png)
+![image](../img/filters.png)
