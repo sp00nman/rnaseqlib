@@ -23,13 +23,21 @@ Benchmark publications
 
 After read mapping and nominating potential fusion candidates a set of filters is applied based on biological and technical indications.
 
-+ Filtering by the number of supporting reads
-+ Removing known read-through events (use AceView database)
-+ Removing pseudogenes
-+ Removing ribosomal genes
+Scoring filters
++ Filter by the number of encompassing and spanning reads (aka supporting reads)
+
+Technical artefact filters
 + Filtering out fusions which support reads overlap with repetitive elements
 + Removing fusions, which partner genes belong to the same family
 + Evidence from visualization (IGV browser)
+
+Biological filters
++ Removing known read-through events (use AceView database)
++ Removing pseudogenes
++ Removing ribosomal genes
+
+
+Additional filters
 
 Summary table of filters used by fusion detection algorithms.
 + [The structure of state-of-art gene fusion-finder algorithms. M.Becutti, Aug, 2013](https://www.oapublishinglondon.com/article/617)
