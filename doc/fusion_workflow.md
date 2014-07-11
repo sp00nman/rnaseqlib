@@ -75,5 +75,15 @@ Summary table of filters used by fusion detection algorithms.
   + [Tobias Rausch approach](https://drive.google.com/drive/#folders/0B7sHWemp6jw_Z3FsTWxKcUtNcVk)
 
 ####PROPOSAL 2
-+ Detection and filtering of fusions is followed 
++ Detection and filtering of fusions is followed by manually looking at the sequence and blasting the fusion junction to the reference genome. Very often these sequences fall within repetitive sequences, or the 5' and 3' region of the fusion is very similar
+
+#####Idea
+  + Implement a repetitive sequence filter
+    + [Duke Exclude Regions](http://hgdownload.cse.ucsc.edu/goldenPath/hg18/encodeDCC/wgEncodeMapability/) 
+    + [DAC Blacklisted Regions](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability)
+    + [1000 Genomes Masks](http://www.1000genomes.org/announcements/genome-accessibility-information-now-available-1000-genomes-browser-2012-09-06)
+  + Implement a 5' 3' homology filter
+  + [sequence similarity search](http://www.ebi.ac.uk/Tools/sss/)
+
+
 
