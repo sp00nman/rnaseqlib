@@ -32,21 +32,21 @@ Technical artefact filters
 + Evidence from visualization (IGV browser)
 
 Biological filters
-
-+ Removing known read-through events (use [AceView](http://www.ncbi.nlm.nih.gov/IEB/Research/Acembly/index.html?human) database)
-  + readthroughs
++ Removing fusions from healthy individuals
+  + [in house](https://docs.google.com/spreadsheet/ccc?key=0ArsHWemp6jw_dGlheGZwT21ONjl0WW9VYVEwWEpyYUE#gid=9) 
++ Removing known/or estimated read-through events
+  + [AceView](http://www.ncbi.nlm.nih.gov/IEB/Research/Acembly/index.html?human) database)
+  + [ConjoinG database](http://metasystems.riken.jp/conjoing/)
+  + [CACG conjoined genes database](http://cgc.kribb.re.kr/map/)
 + Removing pseudogenes
 + Removing ribosomal genes
-+ [ConjoinG database](http://metasystems.riken.jp/conjoing/)
-+ [CACG conjoined genes database](http://cgc.kribb.re.kr/map/)
-
-    
-+ [COSMIC database](http://cancer.sanger.ac.uk/cancergenome/projects/cosmic/)
-+ [TICdb database](http://www.unav.es/genetica/TICdb/)
-+ [ChimerDB 2.0 database literature-based annotation](http://ercsb.ewha.ac.kr/FusionGene/)
-+ [Cancer Genome Project (CGP) translocations database](http://www.sanger.ac.uk/genetics/CGP/Census/)
-+ [IMGT/HLA database](http://www.ebi.ac.uk/ipd/imgt/hla/)
-
++ Removing IMGT/HLA genes
+  + [IMGT/HLA database](http://www.ebi.ac.uk/ipd/imgt/hla/)
++ Annotating known fusions
+  + [COSMIC database](http://cancer.sanger.ac.uk/cancergenome/projects/cosmic/)
+  + [TICdb database](http://www.unav.es/genetica/TICdb/)
+  + [ChimerDB 2.0 database literature-based annotation](http://ercsb.ewha.ac.kr/FusionGene/)
+  + [Cancer Genome Project (CGP) translocations database](http://www.sanger.ac.uk/genetics/CGP/Census/)
 
 Additional filters
 + [Viruses/bacteria/phages genomes database (from the NCBI database)](ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/ (required)
