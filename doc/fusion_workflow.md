@@ -28,5 +28,6 @@ Benchmark publications
 + Removing fusions, which partner genes belong to the same family
 + Evidence from visualization (IGV browser)
 
-Summary table of filters used by fusion detection algorithms
+Summary table of filters used by fusion detection algorithms.
++ [The structure of state-of-art gene fusion-finder algorithms. M.Becutti, Aug, 2013](https://www.oapublishinglondon.com/article/617)
 ![image](../img/filters.png)
