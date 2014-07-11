@@ -5,7 +5,7 @@ Detection and filtering of fusions with RNA-seq
 + [defuse](http://sourceforge.net/projects/defuse/)
 + [tophat-fusion](http://ccb.jhu.edu/software/tophat/fusion_index.html)
 + [SOAPfuse](http://soap.genomics.org.cn/soapfuse.html)
-+ [Additional tools] (https://docs.google.com/spreadsheet/ccc?key=0ArsHWemp6jw_dGlheGZwT21ONjl0WW9VYVEwWEpyYUE#gid=2)
++ [Summary of fusion detection tools (google spreadsheet](https://docs.google.com/spreadsheet/ccc?key=0ArsHWemp6jw_dGlheGZwT21ONjl0WW9VYVEwWEpyYUE#gid=2)
 
 A review/collection of fusion detection tools/algorithm 
 + [Application of next generation sequencing to human gene fusion detection: computational tools, features and perspectives](http://bib.oxfordjournals.org/content/14/4/506)
