@@ -33,8 +33,7 @@ After read mapping and nominating potential fusion candidates a set of filters i
 
 **Biological filters**
 + Removing fusions from healthy individuals
-  + [in house](https://docs.google.com/spreadsheet/ccc?key=0ArsHWemp6jw_dGlheGZwT21ONjl0WW9VYVEwWEpyYUE#gid=9) 
-+ Removing known/or estimated read-through events
++ Remove readthroughs
   + [AceView](http://www.ncbi.nlm.nih.gov/IEB/Research/Acembly/index.html?human) database)
   + [ConjoinG database](http://metasystems.riken.jp/conjoing/)
   + [CACG conjoined genes database](http://cgc.kribb.re.kr/map/)
