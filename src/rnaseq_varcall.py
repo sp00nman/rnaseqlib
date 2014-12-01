@@ -34,8 +34,9 @@ def extract(input_file, sample_dir, project_name, region, output_dir):
     return msg_extract, cmd_extract
 
 
-def reorder(input_file, project_name, output_dir, ref_genome):
+def reorder(project_name, output_dir, ref_genome):
 
+    input_file = project_name + "_extract.bam"
     output_file = output_dir + "/" + project_name + "_reorder.bam"
     msg_replace = "Reorder readgroups."
     cmd_replace = "java -jar $NGS_PICARD/ReorderSam.jar " \
@@ -45,7 +46,7 @@ def reorder(input_file, project_name, output_dir, ref_genome):
     return msg_replace, cmd_replace
 
 
-def sort_bam(input_file, project_name, output_dir):
+def sort_bam(project_name, output_dir):
     """
     Sort sam ? bam file by coordinate.
     :param project_name: name of project (given by user)
@@ -53,6 +54,7 @@ def sort_bam(input_file, project_name, output_dir):
     :return: message to be logged & command to be executed; type str
     """
 
+    input_file = project_name + "_reorder.bam"
     output_file = output_dir + "/" + project_name + "_sorted.bam"
     msg_sort = "Sort bam file (by coordinate)."
     cmd_sort = "java -jar $NGS_PICARD/SortSam.jar " \
@@ -62,9 +64,9 @@ def sort_bam(input_file, project_name, output_dir):
     return msg_sort, cmd_sort
 
 
-def replace_readgroups(input_file, project_name,
-                       output_dir):
+def replace_readgroups(project_name, output_dir):
 
+    input_file = project_name + "_sorted.bam"
     output_file = output_dir + "/" + project_name + "_replace.bam"
     msg_replace = "Reorder readgroups. "
     cmd_replace = "java -jar $NGS_PICARD/AddOrReplaceReadGroups.jar " \
@@ -79,8 +81,7 @@ def replace_readgroups(input_file, project_name,
     return msg_replace, cmd_replace
 
 
-def remove_duplicates(input_file, project_name,
-                      output_dir):
+def remove_duplicates(project_name, output_dir):
     """
     Remove duplicate reads.
     :param project_name: name of project (given by user)
@@ -88,6 +89,7 @@ def remove_duplicates(input_file, project_name,
     :return: message to be logged & command to be executed; type str
     """
 
+    input_file = project_name + "_replace.bam"
     output_file = output_dir + "/" + project_name + "_markduplicates.bam"
     msg_rmdup = "Remove duplicate reads. "
     cmd_rmdup = "java -jar $NGS_PICARD/MarkDuplicates.jar " \
@@ -99,9 +101,10 @@ def remove_duplicates(input_file, project_name,
     return msg_rmdup, cmd_rmdup
 
 
-def splitntrim(input_file, project_name, output_dir, ref_genome):
+def splitntrim(project_name, output_dir, ref_genome):
 
-    output_file = output_dir + "/" + project_name + "_split.bam"
+    input_file = project_name + "_markduplicates.bam"
+    output_file = output_dir + "/" + project_name + "_splitntrim.bam"
     msg_splitntrim = "Splitntrim. "
     cmd_splitntrim = "java -jar $NGS_GATK/GenomeAnalysisTK.jar " \
                      "-T SplitNCigarReads" \
@@ -116,13 +119,14 @@ def splitntrim(input_file, project_name, output_dir, ref_genome):
     return msg_splitntrim, cmd_splitntrim
 
 
-def variant_calling(input_file, project_name, output_dir, ref_genome):
+def variant_calling(project_name, output_dir, ref_genome):
 
     #bamfo
 
     #samtools
 
     #gatk
+    input_file = project_name + "_splitntrim.bam"
     output_file_gatk = output_dir + "/" + project_name + "_varcall_gatk.vcf"
     msg_varcall_gatk = "Call variants (gatk)."
     cmd_varcall_gatk = "java -jar $NGS_GATK/GenomeAnalysisTK.jar " \
@@ -137,8 +141,9 @@ def variant_calling(input_file, project_name, output_dir, ref_genome):
     return msg_varcall_gatk, cmd_varcall_gatk
 
 
-def variant_filtering(input_file, project_name, output_dir, ref_genome):
+def variant_filtering(project_name, output_dir, ref_genome):
 
+    input_file = project_name + "_varcall_gatk.vcf"
     output_file = output_dir + "/" + project_name + "_filtering.bam"
     msg_filter = "Filtering."
     cmd_filter = "java -jar $NGS_GATK/GenomeAnalysisTK.jar " \
@@ -213,21 +218,21 @@ if __name__ == '__main__':
         status = run_cmd(msg, cmd)
 
     if re.search(r"all|reorder", args.stage):
-        (msg, cmd) = reorder(args.input_file, args.project_name,
-                             args.output_dir, args.ref_genome)
+        (msg, cmd) = reorder(args.project_name, args.output_dir,
+                             args.ref_genome)
         status = run_cmd(msg, cmd)
 
     if re.search(r"all|sort_bam", args.stage):
-        (msg, cmd) = reorder(args.input_file, args.project_name,
+        (msg, cmd) = reorder(args.project_name,
                              args.output_dir)
         status = run_cmd(msg, cmd)
 
     if re.search(r"all|replace_readgroups", args.stage):
-        (msg, cmd) = reorder(args.input_file, args.project_name,
+        (msg, cmd) = reorder(args.project_name,
                              args.output_dir)
         status = run_cmd(msg, cmd)
 
     if re.search(r"all|remove_duplicates", args.stage):
-        (msg, cmd) = reorder(args.input_file, args.project_name,
+        (msg, cmd) = reorder(args.project_name,
                              args.output_dir)
         status = run_cmd(msg, cmd)
