@@ -27,8 +27,9 @@ def extract(input_file, project_name, region, output_dir):
 
     output_file = output_dir + "/" + project_name + "_extract.bam"
     msg_extract = "Extract region: " + region
-    cmd_extract = "samtools view -b -h " + input_file \
-                  + " + region + " > output_file
+    cmd_extract = "samtools view -b -h %s %s >%s " % (input_file,
+                                                      region,
+                                                      output_file)
     return msg_extract, cmd_extract
 
 
@@ -96,20 +97,21 @@ def remove_duplicates(input_file, project_name,
                                             project_name)
     return msg_rmdup, cmd_rmdup
 
+
 def splitntrim(input_file, project_name, output_dir, ref_genome):
 
     output_file = output_dir + "/" + project_name + "_split.bam"
     msg_splitntrim = "Splitntrim. "
     cmd_splitntrim = "java -jar $NGS_GATK/GenomeAnalysisTK.jar " \
-                    "-T SplitNCigarReads" \
-                    "-R %s" \
-                    "-I %s" \
-                    "-o %s" \
-                    "-rf ReassignOneMappingQuality" \
-                    "-RMQF 255" \
-                    "-RMQT 60" \
-                    "-U ALLOW_N_CIGAR_READS" %(ref_genome, input_file,
-                                               output_file)
+                     "-T SplitNCigarReads" \
+                     "-R %s" \
+                     "-I %s" \
+                     "-o %s" \
+                     "-rf ReassignOneMappingQuality" \
+                     "-RMQF 255" \
+                     "-RMQT 60" \
+                     "-U ALLOW_N_CIGAR_READS" % (ref_genome, input_file,
+                                                 output_file)
     return msg_splitntrim, cmd_splitntrim
 
 
@@ -129,7 +131,7 @@ def variant_calling(input_file, project_name, output_dir, ref_genome):
                        "-dontUseSoftClippedBases " \
                        "-stand_call_conf 20.0" \
                        "-stand_emit_conf 20.0" \
-                       "-o %s" %(ref_genome, input_file, output_file_gatk)
+                       "-o %s" % (ref_genome, input_file, output_file_gatk)
 
     return msg_varcall_gatk, cmd_varcall_gatk
 
@@ -155,7 +157,8 @@ def variant_filtering(input_file, project_name, output_dir, ref_genome):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Genetic screen workflow 0.0.1')
+    parser = argparse.ArgumentParser(description='Genetic screen workflow '
+                                                 '0.0.1')
     parser.add_argument('--debug', dest='debug', required=False, type=int,
                         help='Debug level')
     parser.add_argument('--stage', dest='stage', required=False, default="all",
@@ -179,15 +182,14 @@ if __name__ == '__main__':
     parser.add_argument('--region', required=False, type=str,
                         help="region eg. 1:23842983-23843983")
 
-
     # parse arguments, set defaults
     args = parser.parse_args()
+    home_dir = os.getenv("HOME")
     if not args.output_dir:
         args.output_dir = os.getcwd()
     if not args.sample_dir:
         args.sample_dir = os.getcwd()
     if not args.exec_dir:
-        home_dir = os.getenv("HOME")
         args.exec_dir = home_dir + "/src"
     if not args.ref_genome:
         args.defuse_ref = home_dir + "/ref_genome"
@@ -201,12 +203,12 @@ if __name__ == '__main__':
                         level=logging.DEBUG)
 
     # start analysis workflow & logging
-    logging.info("rnaseq variant calling (region specific")
+    logging.info("RNAseq variant calling (region specific)")
 
     # start workflow
     if re.search(r"all|extract", args.stage):
-        (msg, cmd) = extract(args.input_file, args.project_name, args.region,
-                             args.sample_dir, args.output_dir)
+        (msg, cmd) = extract(args.input_file, args.project_name,
+                             args.region, args.output_dir)
         status = run_cmd(msg, cmd)
 
     if re.search(r"all|reorder", args.stage):
@@ -228,6 +230,3 @@ if __name__ == '__main__':
         (msg, cmd) = reorder(args.input_file, args.project_name,
                              args.output_dir)
         status = run_cmd(msg, cmd)
-
-
-
