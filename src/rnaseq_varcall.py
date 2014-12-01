@@ -23,8 +23,9 @@ def run_cmd(msg, cmd):
     return status
 
 
-def extract(input_file, project_name, region, output_dir):
+def extract(input_file, sample_dir, project_name, region, output_dir):
 
+    input_file = sample_dir + "/" + input_file
     output_file = output_dir + "/" + project_name + "_extract.bam"
     msg_extract = "Extract region: " + region
     cmd_extract = "samtools view -b -h %s %s >%s " % (input_file,
@@ -180,7 +181,7 @@ if __name__ == '__main__':
     parser.add_argument('--ref_genome', required=False, type=str,
                         help="reference genome")
     parser.add_argument('--region', required=False, type=str,
-                        help="region eg. 1:23842983-23843983")
+                        help="region eg. 20:30946147-31027122")
 
     # parse arguments, set defaults
     args = parser.parse_args()
@@ -207,8 +208,8 @@ if __name__ == '__main__':
 
     # start workflow
     if re.search(r"all|extract", args.stage):
-        (msg, cmd) = extract(args.input_file, args.project_name,
-                             args.region, args.output_dir)
+        (msg, cmd) = extract(args.input_file, args.sample_dir,
+                             args.project_name, args.region, args.output_dir)
         status = run_cmd(msg, cmd)
 
     if re.search(r"all|reorder", args.stage):
