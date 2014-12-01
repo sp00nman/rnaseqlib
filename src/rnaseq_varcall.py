@@ -72,11 +72,11 @@ def replace_readgroups(project_name, output_dir):
     cmd_replace = "java -jar $NGS_PICARD/AddOrReplaceReadGroups.jar " \
                   "I=%s " \
                   "O=%s " \
-                  "SO=coordinate" \
-                  "RGID=1" \
-                  "RGLB=Lib1" \
-                  "RGPL=illumina" \
-                  "RGPU=hiseq2000" \
+                  "SO=coordinate " \
+                  "RGID=1 " \
+                  "RGLB=Lib1 " \
+                  "RGPL=illumina " \
+                  "RGPU=hiseq2000 " \
                   "RGSM=%s" % (input_file, output_file, project_name)
     return msg_replace, cmd_replace
 
@@ -107,13 +107,13 @@ def splitntrim(project_name, output_dir, ref_genome):
     output_file = output_dir + "/" + project_name + "_splitntrim.bam"
     msg_splitntrim = "Splitntrim. "
     cmd_splitntrim = "java -jar $NGS_GATK/GenomeAnalysisTK.jar " \
-                     "-T SplitNCigarReads" \
-                     "-R %s" \
-                     "-I %s" \
-                     "-o %s" \
-                     "-rf ReassignOneMappingQuality" \
-                     "-RMQF 255" \
-                     "-RMQT 60" \
+                     "-T SplitNCigarReads " \
+                     "-R %s " \
+                     "-I %s " \
+                     "-o %s " \
+                     "-rf ReassignOneMappingQuality " \
+                     "-RMQF 255 " \
+                     "-RMQT 60 " \
                      "-U ALLOW_N_CIGAR_READS" % (ref_genome, input_file,
                                                  output_file)
     return msg_splitntrim, cmd_splitntrim
