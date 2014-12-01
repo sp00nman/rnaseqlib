@@ -223,16 +223,28 @@ if __name__ == '__main__':
         status = run_cmd(msg, cmd)
 
     if re.search(r"all|sort_bam", args.stage):
-        (msg, cmd) = reorder(args.project_name,
-                             args.output_dir)
+        (msg, cmd) = sort_bam(args.project_name, args.output_dir)
         status = run_cmd(msg, cmd)
 
     if re.search(r"all|replace_readgroups", args.stage):
-        (msg, cmd) = reorder(args.project_name,
-                             args.output_dir)
+        (msg, cmd) = replace_readgroups(args.project_name, args.output_dir)
         status = run_cmd(msg, cmd)
 
     if re.search(r"all|remove_duplicates", args.stage):
-        (msg, cmd) = reorder(args.project_name,
-                             args.output_dir)
+        (msg, cmd) = remove_duplicates(args.project_name, args.output_dir)
+        status = run_cmd(msg, cmd)
+
+    if re.search(r"all|splitntrim", args.stage):
+        (msg, cmd) = splitntrim(args.project_name, args.output_dir,
+                                args.ref_genome)
+        status = run_cmd(msg, cmd)
+
+    if re.search(r"all|variant_calling", args.stage):
+        (msg, cmd) = variant_calling(args.project_name, args.output_dir,
+                                     args.ref_genome)
+        status = run_cmd(msg, cmd)
+
+    if re.search(r"all|variant_filtering", args.stage):
+        (msg, cmd) = variant_filtering(args.project_name, args.output_dir,
+                                       args.ref_genome)
         status = run_cmd(msg, cmd)
