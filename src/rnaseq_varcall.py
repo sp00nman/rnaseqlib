@@ -101,6 +101,19 @@ def remove_duplicates(project_name, output_dir):
     return msg_rmdup, cmd_rmdup
 
 
+def index_bam(project_name):
+    """
+    Index bam alignment file.
+    :param project_name: name of project (given by user)
+    """
+
+    input_file = project_name + "_markduplicates.bam"
+    msg_indexbam = "Index bam file with samtools."
+    cmd_indexbam = "samtools index %s" % (input_file)
+    
+    return msg_indexbam, cmd_indexbam
+
+
 def splitntrim(project_name, output_dir, ref_genome):
 
     input_file = project_name + "_markduplicates.bam"
@@ -134,8 +147,8 @@ def variant_calling(project_name, output_dir, ref_genome):
                        "-R %s " \
                        "-I %s " \
                        "-dontUseSoftClippedBases " \
-                       "-stand_call_conf 20.0" \
-                       "-stand_emit_conf 20.0" \
+                       "-stand_call_conf 20.0 " \
+                       "-stand_emit_conf 20.0 " \
                        "-o %s" % (ref_genome, input_file, output_file_gatk)
 
     return msg_varcall_gatk, cmd_varcall_gatk
@@ -153,9 +166,9 @@ def variant_filtering(project_name, output_dir, ref_genome):
                  "-window 35 " \
                  "-cluster 3 " \
                  "-filterName FS " \
-                 "-filter \"FS > 30.0\"" \
+                 "-filter \"FS > 30.0\" " \
                  "-filterName QD " \
-                 "-filter \"QD < 2.0\"" \
+                 "-filter \"QD < 2.0\" " \
                  "-o %s" % (ref_genome, input_file, output_file)
 
     return msg_filter, cmd_filter
@@ -232,6 +245,10 @@ if __name__ == '__main__':
 
     if re.search(r"all|remove_duplicates", args.stage):
         (msg, cmd) = remove_duplicates(args.project_name, args.output_dir)
+        status = run_cmd(msg, cmd)
+    
+    if re.search(r"all|index", args.stage):
+        (msg, cmd) = index_bam(args.project_name)
         status = run_cmd(msg, cmd)
 
     if re.search(r"all|splitntrim", args.stage):
