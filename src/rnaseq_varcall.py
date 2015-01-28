@@ -109,12 +109,23 @@ def index_bam(project_name):
 
     input_file = project_name + "_markduplicates.bam"
     msg_indexbam = "Index bam file with samtools."
-    cmd_indexbam = "samtools index %s" % (input_file)
+    cmd_indexbam = "samtools index %s" % input_file
     
     return msg_indexbam, cmd_indexbam
 
 
 def splitntrim(project_name, output_dir, ref_genome):
+    """
+    SplitNCigarReads developed specially for RNAseq,
+    which splits reads into exon segments (getting
+    rid of Ns but maintaining grouping information)
+    and hard-clip any sequences overhanging into the
+    intronic regions.
+    :param project_name: name of project (given by user
+    :param output_dir: where the output files should be written
+    :param ref_genome: reference genome  (.fa)
+    :return: message to be logged & command to be executed; type str
+    """
 
     input_file = project_name + "_markduplicates.bam"
     output_file = output_dir + "/" + project_name + "_splitntrim.bam"
@@ -131,22 +142,54 @@ def splitntrim(project_name, output_dir, ref_genome):
                                                  output_file)
     return msg_splitntrim, cmd_splitntrim
 
-def varcall_bamfo(sample_dir, sample_name, prefix, job_name, genome):
 
-    cmd = "bamfo callvariants " + " \\\n" \
-        + "--bam " + sample_dir + "/" + sample_name + " \\\n" \
-        + "--output " + prefix + "_" + job_name + ".stats" + " \\\n" \
-        + "--genome " + genome
-        return cmd
+def varcall_bamfo(project_name, output_dir, ref_genome):
+
+    input_file = project_name + "_splitntrim.bam"
+    output_file_gatk = output_dir + "/" + project_name + "_varcall_bamfo.vcf"
+    msg_bamfo = "Bamfo variant calling."
+    cmd_bamfo = "bamfo callvariants " + " \\\n" \
+                + "--bam " + input_file + " \\\n" \
+                + "--output " + output_file_gatk + " \\\n" \
+                + "--genome " + ref_genome
+    return msg_bamfo, cmd_bamfo
 
 
-def variant_calling(project_name, output_dir, ref_genome):
+def varcall_samtools(project_name, output_dir, ref_genome):
 
-    #bamfo
+    input_file = output_dir + "/" + project_name + "_splitntrim.bam"
+    output_file_samtools = output_dir + "/" + project_name + "_varcall_samtools.vcf"
+    msg_samtools = "Samtools variant calling."
+    cmd_samtools = "samtools mpileup " \
+                   "-C 50 " \
+                   "-uf %s " \
+                   "%s " \
+                   "| bcftools view -bvcg > %s" % (ref_genome, input_file,
+                                                   output_file_samtools)
+    return msg_samtools, cmd_samtools
 
-    #samtools
 
-    #gatk
+def varcall_gatk(project_name, output_dir, ref_genome):
+    """
+    http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq
+    'We have added some functionality to the variant calling code which
+    will intelligently take into account the information about intron-exon
+    split regions that is embedded in the BAM file by SplitNCigarReads.
+    In brief, the new code will perform dangling head merging operations
+    and avoid using soft-clipped bases (this is a temporary solution) as
+    necessary to minimize false positive and false negative calls. To invoke
+    this new functionality, just add -dontUseSoftClippedBases to your regular
+    HC command line. Note that the -recoverDanglingHeads argument which was
+    previously required is no longer necessary as that behavior is now enabled
+    by default in HaplotypeCaller. Also, we found that we get better results
+    if we lower the minimum phred-scaled confidence threshold for calling
+    variants on RNAseq data, so we use a default of 20 (instead of 30 in
+    DNA-seq data).'
+    :param project_name:
+    :param output_dir:
+    :param ref_genome:
+    :return:
+    """
     input_file = project_name + "_splitntrim.bam"
     output_file_gatk = output_dir + "/" + project_name + "_varcall_gatk.vcf"
     msg_varcall_gatk = "Call variants (gatk)."
@@ -161,10 +204,25 @@ def variant_calling(project_name, output_dir, ref_genome):
 
     return msg_varcall_gatk, cmd_varcall_gatk
 
+
 def variant_filtering(project_name, output_dir, ref_genome):
+    """
+    To filter the resulting callset, you will need to apply hard filters,
+    as we do not yet have the RNAseq training/truth resources that would
+    be needed to run variant recalibration (VQSR).
+    We recommend that you filter clusters of at least 3 SNPs that are within
+    a window of 35 bases between them by adding -window 35 -cluster 3 to your
+    command. This filter recommendation is specific for RNA-seq data.
+    As in DNA-seq, we recommend filtering based on Fisher Strand values
+    (FS > 30.0) and Qual By Depth values (QD < 2.0).
+    :param project_name:
+    :param output_dir:
+    :param ref_genome:
+    :return:
+    """
 
     input_file = project_name + "_varcall_gatk.vcf"
-    output_file = output_dir + "/" + project_name + "_filtering.bam"
+    output_file = output_dir + "/" + project_name + "_filtering_gatk.bam"
     msg_filter = "Filtering."
     cmd_filter = "java -jar $NGS_GATK/GenomeAnalysisTK.jar " \
                  "-T VariantFiltration " \
@@ -190,7 +248,8 @@ if __name__ == '__main__':
     parser.add_argument('--stage', dest='stage', required=False, default="all",
                         choices=["all", "extract", "reorder", "duplicates",
                                  "splitntrim", "realignment", "recalibration",
-                                 "varcall", "filter"],
+                                 "varcall_bamfo", "varcall_samtools",
+                                 "varcall_gatk", "filter"],
                         help='Limit job submission to a particular '
                              'Analysis stage.')
     parser.add_argument('--project_name', required=False, type=str,
@@ -263,8 +322,18 @@ if __name__ == '__main__':
                                 args.ref_genome)
         status = run_cmd(msg, cmd)
 
-    if re.search(r"all|variant_calling", args.stage):
-        (msg, cmd) = variant_calling(args.project_name, args.output_dir,
+    if re.search(r"all|varcall_bamfo", args.stage):
+        (msg, cmd) = varcall_bamfo(args.project_name, args.output_dir,
+                                     args.ref_genome)
+        status = run_cmd(msg, cmd)
+
+    if re.search(r"all|varcall_samtools", args.stage):
+        (msg, cmd) = varcall_samtools(args.project_name, args.output_dir,
+                                     args.ref_genome)
+        status = run_cmd(msg, cmd)
+
+    if re.search(r"all|varcall_gatk", args.stage):
+        (msg, cmd) = varcall_gatk(args.project_name, args.output_dir,
                                      args.ref_genome)
         status = run_cmd(msg, cmd)
 
