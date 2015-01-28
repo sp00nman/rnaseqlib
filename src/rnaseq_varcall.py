@@ -102,7 +102,7 @@ def remove_duplicates(project_name, output_dir):
     return msg_rmdup, cmd_rmdup
 
 
-def index_bam(project_name):
+def index_bam(project_name, output_dir):
     """
     Index bam alignment file.
     :param project_name: name of project (given by user)
@@ -316,7 +316,7 @@ if __name__ == '__main__':
         status = run_cmd(msg, cmd)
     
     if re.search(r"all|index", args.stage):
-        (msg, cmd) = index_bam(args.project_name)
+        (msg, cmd) = index_bam(args.project_name, args.output_dir)
         status = run_cmd(msg, cmd)
 
     if re.search(r"all|splitntrim", args.stage):
