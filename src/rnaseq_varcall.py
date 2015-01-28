@@ -131,6 +131,14 @@ def splitntrim(project_name, output_dir, ref_genome):
                                                  output_file)
     return msg_splitntrim, cmd_splitntrim
 
+def varcall_bamfo(sample_dir, sample_name, prefix, job_name, genome):
+
+    cmd = "bamfo callvariants " + " \\\n" \
+        + "--bam " + sample_dir + "/" + sample_name + " \\\n" \
+        + "--output " + prefix + "_" + job_name + ".stats" + " \\\n" \
+        + "--genome " + genome
+        return cmd
+
 
 def variant_calling(project_name, output_dir, ref_genome):
 
@@ -152,7 +160,6 @@ def variant_calling(project_name, output_dir, ref_genome):
                        "-o %s" % (ref_genome, input_file, output_file_gatk)
 
     return msg_varcall_gatk, cmd_varcall_gatk
-
 
 def variant_filtering(project_name, output_dir, ref_genome):
 
