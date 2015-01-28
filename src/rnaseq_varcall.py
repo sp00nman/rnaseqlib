@@ -164,8 +164,8 @@ def varcall_samtools(project_name, output_dir, ref_genome):
                    "-C 50 " \
                    "-uf %s " \
                    "%s " \
-                   "| bcftools view -bvcg > %s" % (ref_genome, input_file,
-                                                   output_file_samtools)
+                   "| bcftools view -vcg - > %s" % (ref_genome, input_file,
+                                                    output_file_samtools)
     return msg_samtools, cmd_samtools
 
 
