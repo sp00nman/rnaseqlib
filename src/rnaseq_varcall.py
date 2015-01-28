@@ -91,13 +91,14 @@ def remove_duplicates(project_name, output_dir):
 
     input_file = output_dir + "/" + project_name + "_replace.bam"
     output_file = output_dir + "/" + project_name + "_markduplicates.bam"
+    output_metrics = output_dir + "/" + project_name + "_duplicates.metrics.txt"
     msg_rmdup = "Remove duplicate reads. "
     cmd_rmdup = "java -jar $NGS_PICARD/MarkDuplicates.jar " \
                 "INPUT=%s " \
                 "OUTPUT=%s " \
-                "METRICS_FILE=%s.duplicates.metrics.txt " \
+                "METRICS_FILE=%s " \
                 "REMOVE_DUPLICATES=true" % (input_file, output_file,
-                                            project_name)
+                                            output_metrics)
     return msg_rmdup, cmd_rmdup
 
 
@@ -282,7 +283,7 @@ if __name__ == '__main__':
 
     # logging
     # create log file
-    logfile_name = args.project_name + ".log"
+    logfile_name = args.output_dir + "/" + args.project_name + ".log"
     logging.basicConfig(filename=logfile_name,
                         format='%(levelname)s: %(asctime)s %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p',
