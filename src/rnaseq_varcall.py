@@ -132,7 +132,7 @@ def splitntrim(project_name, output_dir, ref_genome):
     input_file = output_dir + "/" + project_name + "_markduplicates.bam"
     output_file = output_dir + "/" + project_name + "_splitntrim.bam"
     msg_splitntrim = "Splitntrim. "
-    cmd_splitntrim = "java -jar $NGS_GATK/GenomeAnalysisTK.jar " \
+    cmd_splitntrim = "java -Xmx6g -jar $NGS_GATK/GenomeAnalysisTK.jar " \
                      "-T SplitNCigarReads " \
                      "-R %s " \
                      "-I %s " \
@@ -145,9 +145,34 @@ def splitntrim(project_name, output_dir, ref_genome):
     return msg_splitntrim, cmd_splitntrim
 
 
-def varcall_bamfo(project_name, output_dir, ref_genome):
+def bqsr(project_name, output_dir, ref_genome):
+    """
+    We do recommend running base recalibration (BQSR). Even though the 
+    effect is also marginal when applied to good quality data, it can 
+    absolutely save your butt in cases where the qualities have 
+    systematic error modes.
+    Both steps 4 and 5 are run as described for DNAseq (with the same 
+    known sites resource files), without any special arguments. Finally, 
+    please note that you should NOT run ReduceReads on your RNAseq data. 
+    The ReduceReads tool will no longer be available in GATK 3.0.
+    """
 
     input_file = output_dir + "/" + project_name + "_splitntrim.bam"
+    output_file = output_dir + "/" + project_name + "_bqsr.bam"
+    msg_splitntrim = "Base recalibration. "
+    cmd_splitntrim = "java -Xmx6g -jar $NGS_GATK/GenomeAnalysisTK.jar " \
+                     "-T PrintReads " \
+                     "-R %s " \
+                     "-I %s " \
+                     "-BSQR recalibration_report.grp " \
+                     "-o %s " % (ref_genome, input_file, output_file)
+    
+    return (msg_splitntrim, cmd_splitntrim)
+
+
+def varcall_bamfo(project_name, output_dir, ref_genome):
+
+    input_file = output_dir + "/" + project_name + "_bqsr.bam"
     output_file_gatk = output_dir + "/" + project_name + "_varcall_bamfo.vcf"
     msg_bamfo = "Bamfo variant calling."
     cmd_bamfo = "bamfo callvariants " + " \\\n" \
@@ -159,7 +184,7 @@ def varcall_bamfo(project_name, output_dir, ref_genome):
 
 def varcall_samtools(project_name, output_dir, ref_genome):
 
-    input_file = output_dir + "/" + project_name + "_splitntrim.bam"
+    input_file = output_dir + "/" + project_name + "_bqsr.bam"
     output_file_samtools = output_dir + "/" + project_name + "_varcall_samtools.vcf"
     msg_samtools = "Samtools variant calling."
     cmd_samtools = "samtools mpileup " \
@@ -192,7 +217,7 @@ def varcall_gatk(project_name, output_dir, ref_genome):
     :param ref_genome:
     :return:
     """
-    input_file = output_dir + "/" + project_name + "_splitntrim.bam"
+    input_file = output_dir + "/" + project_name + "_bqsr.bam"
     output_file_gatk = output_dir + "/" + project_name + "_varcall_gatk.vcf"
     msg_varcall_gatk = "Call variants (gatk)."
     cmd_varcall_gatk = "java -jar $NGS_GATK/GenomeAnalysisTK.jar " \
@@ -249,7 +274,7 @@ if __name__ == '__main__':
                         help='Debug level')
     parser.add_argument('--stage', dest='stage', required=False, default="all",
                         choices=["all", "extract", "reorder", "duplicates",
-                                 "splitntrim", "realignment", "recalibration",
+                                 "splitntrim", "bqsr",
                                  "varcall_bamfo", "varcall_samtools",
                                  "varcall_gatk", "filter"],
                         help='Limit job submission to a particular '
@@ -322,6 +347,11 @@ if __name__ == '__main__':
     if re.search(r"all|splitntrim", args.stage):
         (msg, cmd) = splitntrim(args.project_name, args.output_dir,
                                 args.ref_genome)
+        status = run_cmd(msg, cmd)
+
+    if re.search(r"all|bqsr", args.stage):
+        (msg, cmd) = bqsr(args.project_name, args.output_dir, 
+                          args.ref_genome)
         status = run_cmd(msg, cmd)
 
     if re.search(r"all|varcall_bamfo", args.stage):
