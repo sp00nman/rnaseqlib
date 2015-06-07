@@ -297,7 +297,7 @@ if __name__ == '__main__':
     # parse arguments, set defaults
     args = parser.parse_args()
     home_dir = os.getenv("HOME")
-    skip_regioncall = FALSE
+    skip_regioncall = False
     if not args.output_dir:
         args.output_dir = os.getcwd()
     if not args.sample_dir:
@@ -306,8 +306,8 @@ if __name__ == '__main__':
         args.exec_dir = home_dir + "/src"
     if not args.ref_genome:
         args.defuse_ref = home_dir + "/ref_genome"
-    if not region:
-        skip_regioncall = TRUE
+    if not args.region:
+        skip_regioncall = True
 
     # logging
     # create log file
@@ -321,7 +321,7 @@ if __name__ == '__main__':
     logging.info("RNAseq variant calling (region specific)")
 
     # start workflow
-    if (re.search(r"all|extract", args.stage) & skip_regioncall == FALSE):
+    if (re.search(r"all|extract", args.stage) and skip_regioncall == False):
         (msg, cmd) = extract(args.input_file, args.sample_dir,
                              args.project_name, args.region, args.output_dir)
         status = run_cmd(msg, cmd)
