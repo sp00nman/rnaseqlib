@@ -1,63 +1,114 @@
+"""
+Collection of functions that execute external software or UNIX commands.
+"""
 
 
-def run_cmd(msg, cmd):
-    logging.info(msg)
-    logging.debug(cmd)
-    status = 0
-    if not args.debug:
-        status = system(cmd)
-        if status != 0:
-            logging.warning("command '%s' returned non-zero "
-                            "status: %d'" % (cmd, status))
-    return status
+def rnaseq_align(genome_path,
+                 read1,
+                 read2,
+                 num_cpus):
+    """
+    source: http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq
+    https://github.com/alexdobin/STAR
+    Read alignment: STAR 2-pass method which was described in a recent
+    publication (see page 43 of the Supplemental text of the Paer G Engstroem
+    et al. paper referenced below for full protocol details -- we used the
+    suggested protocol with the default parameters). In brief, in the
+    STAR 2-pass approach, splice junctions detected in a first alignment
+    run are used to guide the final alignment.
+    """
+
+    cmd_align = "STAR " \
+                "--genomeDir %s " \
+                "--readFilesIn %s %s " \
+                "--runThreadN %s " % (genome_path, read1, read2, num_cpus)
+
+    return cmd_align
 
 
-def extract(input_file, sample_dir, project_name, region, output_dir):
+def star_index(genome_path,
+               genome,
+               firstroundalignment,
+               sjdbOverhang,
+               num_cpus):
+    """
+    For the 2-pass STAR, a new index is then created using splice junction
+    information contained in the file SJ.out.tab from the first pass.
+    """
+    cmd_star_index = "STAR " \
+                     "--runMode genomeGenerate " \
+                     "--genomeDir %s " \
+                     "--genomeFastaFiles %s " \
+                     "--sjdbFileChrStartEnd %s " \
+                     "--sjdbOverhang %s " \
+                     "--runThreadN %s" % (genome_path,
+                                          genome,
+                                          firstroundalignment,
+                                          sjdbOverhang,
+                                          num_cpus)
+    return cmd_star_index
 
-    input_file = sample_dir + "/" + input_file
-    output_file = output_dir + "/" + project_name + "_extract.bam"
-    msg_extract = "Extract region: " + region
+
+def extract(input_file,
+            region,
+            output_file):
+    """
+    Extract a region from a BAM file.
+    """
+
     cmd_extract = "samtools view -b -h %s %s >%s " % (input_file,
                                                       region,
                                                       output_file)
-    return msg_extract, cmd_extract
+    return cmd_extract
 
 
-def reorder(project_name, output_dir, ref_genome):
+def reorder_sam(inbamfile,
+                outbamfile,
+                genome_path):
+    """
+    Reorder BAM file.
+    :param inbamfile: name of BAM formatted file
+    :param outbamfile: name of output file
+    :param genomes: path to genome
+    :return: Command to be executed; type str
+    """
 
-    input_file = output_dir + "/" + project_name + "_extract.bam"
-    output_file = output_dir + "/" + project_name + "_reorder.bam"
-    msg_replace = "Reorder readgroups."
-    cmd_replace = "java -jar $NGS_PICARD/ReorderSam.jar " \
-                  "INPUT=%s "\
+    cmd_reorder = "java -Xmx6g -jar $NGS_PICARD/ReorderSam.jar " \
+                  "INPUT=%s " \
                   "OUTPUT=%s " \
-                  "REFERENCE=%s" % (input_file, output_file, ref_genome)
-    return msg_replace, cmd_replace
+                  "REFERENCE=%s.fa" % (inbamfile,
+                                    outbamfile,
+                                    genome_path)
+    return cmd_reorder
 
 
-def sort_bam(project_name, output_dir):
+def sort_bam(inbamfile,
+             outbamfile,
+             sort_order="coordinate"):
     """
-    Sort sam ? bam file by coordinate.
-    :param project_name: name of project (given by user)
-    :param output_dir: where the output files should be written
-    :return: message to be logged & command to be executed; type str
+    Sort BAM file by variable
+    :param inbamfile: name of BAM formatted file
+    :param outbamfile: name of output file (BAM formatted and sorted)
+    :param sort_order: sort by (default: coordinate)
+    :return: Command to be executed; type str
     """
 
-    input_file =  output_dir + "/" + project_name + "_reorder.bam"
-    output_file = output_dir + "/" + project_name + "_sorted.bam"
-    msg_sort = "Sort bam file (by coordinate)."
-    cmd_sort = "java -jar $NGS_PICARD/SortSam.jar " \
+    cmd_sort = "java -Xmx6g -jar $NGS_PICARD/SortSam.jar " \
                "INPUT=%s " \
                "OUTPUT=%s " \
-               "SORT_ORDER=coordinate" % (input_file, output_file)
-    return msg_sort, cmd_sort
+               "SORT_ORDER=%s" % (inbamfile,
+                                  outbamfile,
+                                  sort_order)
+    return cmd_sort
 
 
-def replace_readgroups(project_name, output_dir):
+def replace_readgroups(input_file,
+                       output_file,
+                       project_name):
+    """
+    Replace readgroups (with some dummy variables.)
+    """
 
-    input_file = output_dir + "/" + project_name + "_sorted.bam"
-    output_file = output_dir + "/" + project_name + "_replace.bam"
-    msg_replace = "Reorder readgroups. "
     cmd_replace = "java -jar $NGS_PICARD/AddOrReplaceReadGroups.jar " \
                   "I=%s " \
                   "O=%s " \
@@ -66,61 +117,60 @@ def replace_readgroups(project_name, output_dir):
                   "RGLB=Lib1 " \
                   "RGPL=illumina " \
                   "RGPU=hiseq2000 " \
-                  "RGSM=%s" % (input_file, output_file, project_name)
-    return msg_replace, cmd_replace
+                  "RGSM=%s" % (input_file,
+                               output_file,
+                               project_name)
+    return cmd_replace
 
 
-def remove_duplicates(project_name, output_dir):
+def remove_duplicates(inbamfile,
+                      outbamfile,
+                      metrics_file):
     """
     Remove duplicate reads.
-    :param project_name: name of project (given by user)
-    :param output_dir: where the output files should be written
-    :return: message to be logged & command to be executed; type str
+    :param inbamfile: name of BAM formatted file
+    :param outbamfile: name of output file
+    :param metrics_file: file with summary statistics about
+    :return: Command to be executed; type str
     """
 
-    input_file = output_dir + "/" + project_name + "_replace.bam"
-    output_file = output_dir + "/" + project_name + "_markduplicates.bam"
-    output_metrics = output_dir + "/" + project_name + "_duplicates.metrics.txt"
-    msg_rmdup = "Remove duplicate reads. "
-    cmd_rmdup = "java -jar $NGS_PICARD/MarkDuplicates.jar " \
+    cmd_rmdup = "java -Xmx6g -jar $NGS_PICARD/MarkDuplicates.jar " \
                 "INPUT=%s " \
                 "OUTPUT=%s " \
                 "METRICS_FILE=%s " \
-                "REMOVE_DUPLICATES=true" % (input_file, output_file,
-                                            output_metrics)
-    return msg_rmdup, cmd_rmdup
+                "REMOVE_DUPLICATES=true" % (inbamfile,
+                                            outbamfile,
+                                            metrics_file)
+    return cmd_rmdup
 
 
-def index_bam(project_name, output_dir):
+def index_bam(inbamfile):
     """
-    Index bam alignment file.
-    :param project_name: name of project (given by user)
+    Index BAM file.
+    :param inbamfile: name of BAM formatted file
+    :return: Command to be executed; type str
     """
 
-    input_file = output_dir + "/" + project_name + "_markduplicates.bam"
-    output_file = output_dir + "/" + project_name + "_markduplicates.bai"
-    msg_indexbam = "Index bam file with samtools."
-    cmd_indexbam = "samtools index %s %s" % (input_file, output_file)
-    
-    return msg_indexbam, cmd_indexbam
+    cmd_index_bam = "samtools index %s" % (inbamfile)
+    return cmd_index_bam
 
 
-def splitntrim(project_name, output_dir, ref_genome):
+def splitntrim(input_file,
+               output_file,
+               ref_genome):
     """
-    SplitNCigarReads developed specially for RNAseq,
+    source: http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq
+    - SplitNCigarReads developed specially for RNAseq,
     which splits reads into exon segments (getting
     rid of Ns but maintaining grouping information)
     and hard-clip any sequences overhanging into the
-    intronic regions.
+    intronic regions. -
     :param project_name: name of project (given by user
     :param output_dir: where the output files should be written
     :param ref_genome: reference genome  (.fa)
     :return: message to be logged & command to be executed; type str
     """
 
-    input_file = output_dir + "/" + project_name + "_markduplicates.bam"
-    output_file = output_dir + "/" + project_name + "_splitntrim.bam"
-    msg_splitntrim = "Splitntrim. "
     cmd_splitntrim = "java -Xmx6g -jar $NGS_GATK/GenomeAnalysisTK.jar " \
                      "-T SplitNCigarReads " \
                      "-R %s " \
@@ -129,63 +179,72 @@ def splitntrim(project_name, output_dir, ref_genome):
                      "-rf ReassignOneMappingQuality " \
                      "-RMQF 255 " \
                      "-RMQT 60 " \
-                     "-U ALLOW_N_CIGAR_READS" % (ref_genome, input_file,
-                                                 output_file)
-    return msg_splitntrim, cmd_splitntrim
+                     "-U ALLOW_N_CIGAR_READS" % (input_file,
+                                                 output_file,
+                                                 ref_genome,)
+    return cmd_splitntrim
 
 
-def bqsr(project_name, output_dir, ref_genome):
+def bqsr(input_file,
+         output_file,
+         ref_genome):
     """
-    We do recommend running base recalibration (BQSR). Even though the 
+    source: http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq
+    - We do recommend running base recalibration (BQSR). Even though the
     effect is also marginal when applied to good quality data, it can 
     absolutely save your butt in cases where the qualities have 
     systematic error modes.
     Both steps 4 and 5 are run as described for DNAseq (with the same 
     known sites resource files), without any special arguments. Finally, 
     please note that you should NOT run ReduceReads on your RNAseq data. 
-    The ReduceReads tool will no longer be available in GATK 3.0.
+    The ReduceReads tool will no longer be available in GATK 3.0. -
     """
 
-    input_file = output_dir + "/" + project_name + "_splitntrim.bam"
-    output_file = output_dir + "/" + project_name + "_bqsr.bam"
-    msg_splitntrim = "Base recalibration. "
     cmd_splitntrim = "java -Xmx6g -jar $NGS_GATK/GenomeAnalysisTK.jar " \
                      "-T PrintReads " \
                      "-R %s " \
                      "-I %s " \
                      "-BSQR recalibration_report.grp " \
-                     "-o %s " % (ref_genome, input_file, output_file)
-    
-    return (msg_splitntrim, cmd_splitntrim)
+                     "-o %s " % (ref_genome,
+                                 input_file,
+                                 output_file)
+    return cmd_splitntrim
 
 
-def varcall_bamfo(project_name, output_dir, ref_genome):
-
-    input_file = output_dir + "/" + project_name + "_bqsr.bam"
-    output_file_gatk = output_dir + "/" + project_name + "_varcall_bamfo.vcf"
-    msg_bamfo = "Bamfo variant calling."
+def varcall_bamfo(input_file,
+                  output_file_gatk,
+                  ref_genome):
+    """
+    Variant calling with bamfo (author: Tomas Konopka).
+    """
     cmd_bamfo = "bamfo callvariants " + " \\\n" \
                 + "--bam " + input_file + " \\\n" \
                 + "--output " + output_file_gatk + " \\\n" \
                 + "--genome " + ref_genome
-    return msg_bamfo, cmd_bamfo
+
+    return cmd_bamfo
 
 
-def varcall_samtools(project_name, output_dir, ref_genome):
+def varcall_samtools(input_file,
+                     output_file_samtools,
+                     ref_genome):
+    """
+    Variant calling with samtools.
+    """
 
-    input_file = output_dir + "/" + project_name + "_bqsr.bam"
-    output_file_samtools = output_dir + "/" + project_name + "_varcall_samtools.vcf"
-    msg_samtools = "Samtools variant calling."
     cmd_samtools = "samtools mpileup " \
                    "-C 50 " \
                    "-uf %s " \
                    "%s " \
-                   "| bcftools view -vcg - > %s" % (ref_genome, input_file,
+                   "| bcftools view -vcg - > %s" % (ref_genome,
+                                                    input_file,
                                                     output_file_samtools)
-    return msg_samtools, cmd_samtools
+    return cmd_samtools
 
 
-def varcall_gatk(project_name, output_dir, ref_genome):
+def varcall_gatk(input_file,
+                 output_file_gatk,
+                 ref_genome):
     """
     http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq
     'We have added some functionality to the variant calling code which
@@ -201,14 +260,8 @@ def varcall_gatk(project_name, output_dir, ref_genome):
     if we lower the minimum phred-scaled confidence threshold for calling
     variants on RNAseq data, so we use a default of 20 (instead of 30 in
     DNA-seq data).'
-    :param project_name:
-    :param output_dir:
-    :param ref_genome:
-    :return:
     """
-    input_file = output_dir + "/" + project_name + "_bqsr.bam"
-    output_file_gatk = output_dir + "/" + project_name + "_varcall_gatk.vcf"
-    msg_varcall_gatk = "Call variants (gatk)."
+
     cmd_varcall_gatk = "java -jar $NGS_GATK/GenomeAnalysisTK.jar " \
                        "-T HaplotypeCaller " \
                        "-R %s " \
@@ -216,12 +269,13 @@ def varcall_gatk(project_name, output_dir, ref_genome):
                        "-dontUseSoftClippedBases " \
                        "-stand_call_conf 20.0 " \
                        "-stand_emit_conf 20.0 " \
-                       "-o %s" % (ref_genome, input_file, output_file_gatk)
+                       "-o %s" % (ref_genome,
+                                  input_file,
+                                  output_file_gatk)
+    return cmd_varcall_gatk
 
-    return msg_varcall_gatk, cmd_varcall_gatk
 
-
-def variant_filtering(project_name, output_dir, ref_genome):
+def variant_filtering(input_file, output_file, ref_genome):
     """
     To filter the resulting callset, you will need to apply hard filters,
     as we do not yet have the RNAseq training/truth resources that would
@@ -231,15 +285,8 @@ def variant_filtering(project_name, output_dir, ref_genome):
     command. This filter recommendation is specific for RNA-seq data.
     As in DNA-seq, we recommend filtering based on Fisher Strand values
     (FS > 30.0) and Qual By Depth values (QD < 2.0).
-    :param project_name:
-    :param output_dir:
-    :param ref_genome:
-    :return:
     """
 
-    input_file = output_dir + "/" + project_name + "_varcall_gatk.vcf"
-    output_file = output_dir + "/" + project_name + "_filtering_gatk.bam"
-    msg_filter = "Filtering."
     cmd_filter = "java -jar $NGS_GATK/GenomeAnalysisTK.jar " \
                  "-T VariantFiltration " \
                  "-R %s " \
@@ -250,6 +297,7 @@ def variant_filtering(project_name, output_dir, ref_genome):
                  "-filter \"FS > 30.0\" " \
                  "-filterName QD " \
                  "-filter \"QD < 2.0\" " \
-                 "-o %s" % (ref_genome, input_file, output_file)
-
-    return msg_filter, cmd_filter
+                 "-o %s" % (ref_genome,
+                            input_file,
+                            output_file)
+    return cmd_filter
