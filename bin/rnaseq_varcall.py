@@ -14,12 +14,11 @@ if __name__ == '__main__':
                                                  '0.0.1')
     parser.add_argument('--debug', dest='debug', required=False, type=int,
                         help='Debug level')
-    parser.add_argument('--stage', dest='stage', required=False, default="all",
-                        choices=["all", "alignment", "region", "duplicates",
-                                 "splitntrim", "bqsr", "varcall_bamfo",
-                                 "varcall_samtools", "varcall_gatk", "filter"],
+    parser.add_argument('--stage', dest='stage', required=False,
                         help='Limit job submission to a particular '
-                             'analysis stage.')
+                             'analysis stage.'
+                        '[all,alignment,extract,duplicates,splitntrim,bqsr,'
+                        'bamfo,samtools,gatk,filter]')
     parser.add_argument('--project_name', required=False, type=str,
                         help="name of the project")
     parser.add_argument('--read1', required=False, type=str,
@@ -59,6 +58,10 @@ if __name__ == '__main__':
     # set project directory
     project_dir = args.output_dir + "/" + args.project_name
 
+    # create directory structure
+    ts.create_output_dir(args.output_dir, args.project_name)
+    sub_dir = args.output_dir + "/" + args.project_name
+
     # create log file
     logfile_name = args.output_dir + "/" + args.project_name + "/" \
                    + args.project_name + ".log"
@@ -70,10 +73,6 @@ if __name__ == '__main__':
     # start analysis workflow & logging
     logging.info("RNAseq variant calling (region specific)")
 
-        # create directory structure
-    ts.create_output_dir(args.output_dir, args.project_name)
-    sub_dir = args.output_dir + "/" + args.project_name
-
     # load dictionary for file extensions
     data_dir = str(os.path.dirname(os.path.realpath(__file__)).strip('bin')) \
                + "data" + "/"
@@ -81,10 +80,15 @@ if __name__ == '__main__':
     # load dictionary for stdout messages
     stdout_msg = ts.load_dictionary(data_dir + 'stdout_message.txt')
 
+    print args.stage
+    print file_ext
+    print stdout_msg
+
     # start workflow
     if re.search(r"all|alignment", args.stage):
+        print args.stage
         cmd = rb.rnaseq_align(
-            genome_path=args.genome,
+            genome_path=args.ref_genome,
             read1=args.read1,
             read2=args.read2,
             num_cpus=args.num_cpus
@@ -117,7 +121,7 @@ if __name__ == '__main__':
             num_cpus=args.num_cpus
         )
 
-    if re.search(r"all|extract", args.stage) and args.region is False:
+    if re.search(r"all|extract", args.stage):
 
         if args.region is False:
             sample_file = project_dir + "/" \
@@ -183,7 +187,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|replace_readgroups", args.stage):
+    if re.search(r"all|replace_rg", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
@@ -202,7 +206,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|remove_duplicates", args.stage):
+    if re.search(r"all|duplicates", args.stage):
 
         sample_file = project_dir + "/" \
                         + args.project_name + "." \
@@ -266,7 +270,9 @@ if __name__ == '__main__':
             output_file=project_dir + "/"
                         + args.project_name + "."
                         + file_ext['bqsr'],
-            ref_genome=args.ref_genome)
+            ref_genome=args.ref_genome,
+            recal_report=args.project_name + "."
+                        + "splitntrim")
 
         status = ts.run_cmd(
             message=stdout_msg['bqsr'],
@@ -274,7 +280,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|varcall_bamfo", args.stage):
+    if re.search(r"all|bamfo", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
@@ -293,7 +299,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|varcall_samtools", args.stage):
+    if re.search(r"all|samtools", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
@@ -312,11 +318,12 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|varcall_gatk", args.stage):
+    if re.search(r"all|gatk", args.stage):
 
+        # TODO: if for bqsr
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
-                    + file_ext['bqsr']
+                    + file_ext['splitntrim']
 
         cmd = rb.varcall_gatk(
             input_file=sample_file,

@@ -173,21 +173,22 @@ def splitntrim(input_file,
 
     cmd_splitntrim = "java -Xmx6g -jar $NGS_GATK/GenomeAnalysisTK.jar " \
                      "-T SplitNCigarReads " \
-                     "-R %s " \
+                     "-R %s.fa " \
                      "-I %s " \
                      "-o %s " \
                      "-rf ReassignOneMappingQuality " \
                      "-RMQF 255 " \
                      "-RMQT 60 " \
-                     "-U ALLOW_N_CIGAR_READS" % (input_file,
-                                                 output_file,
-                                                 ref_genome,)
+                     "-U ALLOW_N_CIGAR_READS" % (ref_genome,
+                                                 input_file,
+                                                 output_file)
     return cmd_splitntrim
 
 
 def bqsr(input_file,
          output_file,
-         ref_genome):
+         ref_genome,
+         recal_report):
     """
     source: http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq
     - We do recommend running base recalibration (BQSR). Even though the
@@ -202,11 +203,12 @@ def bqsr(input_file,
 
     cmd_splitntrim = "java -Xmx6g -jar $NGS_GATK/GenomeAnalysisTK.jar " \
                      "-T PrintReads " \
-                     "-R %s " \
+                     "-R %s.fa " \
                      "-I %s " \
-                     "-BSQR recalibration_report.grp " \
+                     "-BQSR %s.recal_data.grp " \
                      "-o %s " % (ref_genome,
                                  input_file,
+                                 recal_report,
                                  output_file)
     return cmd_splitntrim
 
@@ -226,7 +228,7 @@ def varcall_bamfo(input_file,
 
 
 def varcall_samtools(input_file,
-                     output_file_samtools,
+                     output_file,
                      ref_genome):
     """
     Variant calling with samtools.
@@ -238,7 +240,7 @@ def varcall_samtools(input_file,
                    "%s " \
                    "| bcftools view -vcg - > %s" % (ref_genome,
                                                     input_file,
-                                                    output_file_samtools)
+                                                    output_file)
     return cmd_samtools
 
 
@@ -264,7 +266,7 @@ def varcall_gatk(input_file,
 
     cmd_varcall_gatk = "java -jar $NGS_GATK/GenomeAnalysisTK.jar " \
                        "-T HaplotypeCaller " \
-                       "-R %s " \
+                       "-R %s.fa " \
                        "-I %s " \
                        "-dontUseSoftClippedBases " \
                        "-stand_call_conf 20.0 " \
