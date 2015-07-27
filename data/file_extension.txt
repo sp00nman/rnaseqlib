@@ -1,0 +1,15 @@
+bam2fastq:          fastq
+alignment:          dummy_aligned.bam
+alignment_index:    aligned.bam
+extract:            extract_aligned.bam
+reorder:            reorder_extract_aligned.bam
+sort:               sort_reorder_extract_aligned.bam
+replace_rg:         replace_sort_reorder_extract_aligned.bam
+duplicates:         duplicates_removed.bam
+index:              index.bam
+splitntrim:         splitntrim.bam
+bqsr:               bqsr.bam
+bamfo:              varcall_bamfo.vcf
+samtools:           varcall_samtools.vcf
+gatk:               varcall_gatk.vcf
+filtering:          filtering_varcall_gatk.vcf

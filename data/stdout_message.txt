@@ -1,0 +1,15 @@
+bam2fastq:          Convert BAM file to FASTQ.
+alignment:          Alignment with STAR.
+alignment_index:    Realign reads to new reference.
+extract:            Extract region.
+reorder:            Reorder reads.
+sort:               Sort reads.
+replace_rg:         Replace readgroups.
+duplicates:         Remove duplicate reads.
+index:              Index BAM file
+splitntrim:         Splitntrim
+bqsr:               BQSR variant recalibration
+bamfo:              Variant calling with bamfo.
+samtools:           Variant calling with samtools.
+gatk:               Variant calling with gatk.
+filtering:          Filtering (only gatk).
