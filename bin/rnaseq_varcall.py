@@ -26,6 +26,8 @@ if __name__ == '__main__':
                         help="For paired alignment, forward read.")
     parser.add_argument('--read2', required=False, type=str,
                         help="For paired alignment, reverse read.")
+    parser.add_argument('--sample_file', required=False, type=str,
+                        help="For region variant calling.")
     parser.add_argument('--sample_dir', required=False, type=str,
                         help="sample directory")
     parser.add_argument('--exec_dir', required=False, type=str,
@@ -54,6 +56,9 @@ if __name__ == '__main__':
     if not args.num_cpus:
         args.num_cpus = "1"
 
+    # set project directory
+    project_dir = args.output_dir + "/" + args.project_name
+
     # create log file
     logfile_name = args.output_dir + "/" + args.project_name + "/" \
                    + args.project_name + ".log"
@@ -64,6 +69,10 @@ if __name__ == '__main__':
 
     # start analysis workflow & logging
     logging.info("RNAseq variant calling (region specific)")
+
+        # create directory structure
+    ts.create_output_dir(args.output_dir, args.project_name)
+    sub_dir = args.output_dir + "/" + args.project_name
 
     # load dictionary for file extensions
     data_dir = str(os.path.dirname(os.path.realpath(__file__)).strip('bin')) \
@@ -102,17 +111,28 @@ if __name__ == '__main__':
         )
 
         cmd = rb.rnaseq_align(
-            genome_path=different_path,
+            genome_path=args.ref_genome,
             read1=args.read1,
             read2=args.read2,
             num_cpus=args.num_cpus
         )
 
-    if re.search(r"all|extract", args.stage) and args.skip_regioncall is False:
+    if re.search(r"all|extract", args.stage) and args.region is False:
+
+        if args.region is False:
+            sample_file = project_dir + "/" \
+                          + args.project_name + "." \
+                          + file_ext['alignment_index']
+        else:
+            sample_file = args.sample_file
+
         cmd = rb.extract(
-            input_file=args.input_file,
-            region=args.sample_dir,
-            output_file=args.output_dir)
+            input_file=sample_file,
+            region=args.region,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['extract']
+        )
 
         status = ts.run_cmd(
             message=stdout_msg['extract'],
@@ -121,9 +141,21 @@ if __name__ == '__main__':
         )
 
     if re.search(r"all|reorder", args.stage):
+
+        if args.region is False:
+            sample_file = project_dir + "/" \
+                        + args.project_name + "." \
+                        + file_ext['alignment_index']
+        else:
+            sample_file = project_dir + "/" \
+                          + args.project_name + "." \
+                          + file_ext['extract']
+
         cmd = rb.reorder_sam(
-            inbamfile=args.project_name,
-            outbamfile=args.output_dir,
+            inbamfile=sample_file,
+            outbamfile=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['reorder'],
             genome_path=args.ref_genome)
 
         status = ts.run_cmd(
@@ -133,21 +165,35 @@ if __name__ == '__main__':
         )
 
     if re.search(r"all|sort_bam", args.stage):
+
+        sample_file = project_dir + "/" \
+                    + args.project_name + "." \
+                    + file_ext['reorder']
+
         cmd = rb.sort_bam(
-            inbamfile=args.project_name,
-            outbamfile=args.output_dir,
+            inbamfile=sample_file,
+            outbamfile=project_dir + "/"
+                        + args.project_name + "." \
+                        + file_ext['sort'],
             sort_order="coordinate")
 
         status = ts.run_cmd(
-            message=stdout_msg['sort_bam'],
+            message=stdout_msg['sort'],
             command=cmd,
             debug=args.debug
         )
 
     if re.search(r"all|replace_readgroups", args.stage):
+
+        sample_file = project_dir + "/" \
+                    + args.project_name + "." \
+                    + file_ext['sort']
+
         cmd = rb.replace_readgroups(
-            input_file=args.project_name,
-            output_file=args.output_dir,
+            input_file=sample_file,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['replace_rg'],
             project_name=args.project_name)
 
         status = ts.run_cmd(
@@ -157,9 +203,16 @@ if __name__ == '__main__':
         )
 
     if re.search(r"all|remove_duplicates", args.stage):
+
+        sample_file = project_dir + "/" \
+                        + args.project_name + "." \
+                        + file_ext['replace_rg']
+
         cmd = rb.remove_duplicates(
-            inbamfile=args.project_name,
-            outbamfile=args.output_dir,
+            inbamfile=sample_file,
+            outbamfile=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['duplicates'],
             metrics_file=".duplicate_metrics.txt")
 
         status = ts.run_cmd(
@@ -169,8 +222,13 @@ if __name__ == '__main__':
         )
 
     if re.search(r"all|index", args.stage):
+
+        sample_file = project_dir + "/" \
+                        + args.project_name + "." \
+                        + file_ext['duplicates']
+
         cmd = rb.index_bam(
-            inbamfile=args.project_name)
+            inbamfile=sample_file)
 
         status = ts.run_cmd(
             message=stdout_msg['index'],
@@ -179,9 +237,16 @@ if __name__ == '__main__':
         )
 
     if re.search(r"all|splitntrim", args.stage):
+
+        sample_file = project_dir + "/" \
+                        + args.project_name + "." \
+                        + file_ext['duplicates']
+
         cmd = rb.splitntrim(
-            input_file=args.project_name,
-            output_file=args.output_dir,
+            input_file=sample_file,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['splitntrim'],
             ref_genome=args.ref_genome)
 
         status = ts.run_cmd(
@@ -191,9 +256,16 @@ if __name__ == '__main__':
         )
 
     if re.search(r"all|bqsr", args.stage):
+
+        sample_file = project_dir + "/" \
+                        + args.project_name + "." \
+                        + file_ext['splitntrim']
+
         cmd = rb.bqsr(
-            input_file=args.project_name,
-            output_file=args.output_dir,
+            input_file=sample_file,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['bqsr'],
             ref_genome=args.ref_genome)
 
         status = ts.run_cmd(
@@ -203,9 +275,16 @@ if __name__ == '__main__':
         )
 
     if re.search(r"all|varcall_bamfo", args.stage):
+
+        sample_file = project_dir + "/" \
+                    + args.project_name + "." \
+                    + file_ext['bqsr']
+
         cmd = rb.varcall_bamfo(
-            input_file=args.project_name,
-            output_file_gatk=args.output_dir,
+            input_file=sample_file,
+            output_file_gatk=project_dir + "/"
+                            + args.project_name + "."
+                            + file_ext['bamfo'],
             ref_genome=args.ref_genome)
 
         status = ts.run_cmd(
@@ -215,9 +294,16 @@ if __name__ == '__main__':
         )
 
     if re.search(r"all|varcall_samtools", args.stage):
+
+        sample_file = project_dir + "/" \
+                    + args.project_name + "." \
+                    + file_ext['bqsr']
+
         cmd = rb.varcall_samtools(
-            input_file=args.project_name,
-            output_file_gatk=args.output_dir,
+            input_file=sample_file,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['samtools'],
             ref_genome=args.ref_genome)
 
         status = ts.run_cmd(
@@ -227,9 +313,16 @@ if __name__ == '__main__':
         )
 
     if re.search(r"all|varcall_gatk", args.stage):
+
+        sample_file = project_dir + "/" \
+                    + args.project_name + "." \
+                    + file_ext['bqsr']
+
         cmd = rb.varcall_gatk(
-            input_file=args.project_name,
-            output_file_gatk=args.output_dir,
+            input_file=sample_file,
+            output_file_gatk=project_dir + "/"
+                            + args.project_name + "."
+                            + file_ext['gatk'],
             ref_genome=args.ref_genome)
 
         status = ts.run_cmd(
@@ -239,9 +332,17 @@ if __name__ == '__main__':
         )
 
     if re.search(r"all|variant_filtering", args.stage):
+
+        #only gatk
+        sample_file = project_dir + "/" \
+                    + args.project_name + "." \
+                    + file_ext['gatk']
+
         cmd = rb.variant_filtering(
-            input_file=args.project_name,
-            output_file=args.output_dir,
+            input_file=sample_file,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['filtering'],
             ref_genome=args.ref_genome)
 
         status = ts.run_cmd(
