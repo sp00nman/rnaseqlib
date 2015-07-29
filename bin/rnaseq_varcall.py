@@ -28,11 +28,13 @@ if __name__ == '__main__':
     parser.add_argument('--sample_file', required=False, type=str,
                         help="For region variant calling.")
     parser.add_argument('--sample_dir', required=False, type=str,
-                        help="sample directory")
+                        help="Path to sample directory")
     parser.add_argument('--exec_dir', required=False, type=str,
                         help="exec_dir")
     parser.add_argument('--output_dir', required=False, type=str,
-                        help="output_dir")
+                        help="Path to output directory.")
+    parser.add_argument('--star_genome', required=False, type=str,
+                        help="Genome directory of star aligner.")
     parser.add_argument('--ref_genome', required=False, type=str,
                         help="reference genome")
     parser.add_argument('--region', required=False, type=str, default=False,
@@ -52,6 +54,8 @@ if __name__ == '__main__':
         args.exec_dir = home_dir + "/src"
     if not args.ref_genome:
         args.defuse_ref = home_dir + "/ref_genome"
+    if not args.star_genome:
+        args.star_genome = home_dir + "/star_genome"
     if not args.num_cpus:
         args.num_cpus = "1"
 
@@ -61,6 +65,7 @@ if __name__ == '__main__':
     # create directory structure
     ts.create_output_dir(args.output_dir, args.project_name)
     sub_dir = args.output_dir + "/" + args.project_name
+    ts.create_output_dir(sub_dir, "star_2pass")
 
     # create log file
     logfile_name = args.output_dir + "/" + args.project_name + "/" \
@@ -80,18 +85,16 @@ if __name__ == '__main__':
     # load dictionary for stdout messages
     stdout_msg = ts.load_dictionary(data_dir + 'stdout_message.txt')
 
-    print args.stage
-    print file_ext
-    print stdout_msg
-
     # start workflow
     if re.search(r"all|alignment", args.stage):
-        print args.stage
+
         cmd = rb.rnaseq_align(
-            genome_path=args.ref_genome,
+            star_genome=args.star_genome,
             read1=args.read1,
             read2=args.read2,
-            num_cpus=args.num_cpus
+            num_cpus=args.num_cpus,
+            outfile_prefix=project_dir + "/"
+                           + args.project_name + "."
         )
 
         status = ts.run_cmd(
@@ -101,24 +104,39 @@ if __name__ == '__main__':
         )
 
         cmd = rb.star_index(
-            genome_path=args.ref_genome,
-            genome="hg19.fa",
-            firstroundalignment="dummy",
-            sjdbOverhang="75",
-            num_cpus=args.num_cpus
+            novel_ref=project_dir + "/"
+                      + "star_2pass",
+            genome=args.ref_genome,
+            firstroundalignment=project_dir + "/"
+                                + args.project_name + "."
+                                + "out.tab",
+            sjdb_overhang="75",
+            num_cpus=args.num_cpus,
+            outfile_prefix=project_dir + "/"
+                           + args.project_name + "."
         )
 
-        status =ts.run_cmd(
+        status = ts.run_cmd(
             message=stdout_msg['alignment_index'],
             command=cmd,
             debug=args.debug
         )
 
         cmd = rb.rnaseq_align(
-            genome_path=args.ref_genome,
+            star_genome=project_dir + "/"
+                        + "star_2pass",
             read1=args.read1,
             read2=args.read2,
-            num_cpus=args.num_cpus
+            num_cpus=args.num_cpus,
+            outfile_prefix=project_dir + "/"
+                           + args.project_name + "."
+                           + "_2pass_"
+        )
+
+        status = ts.run_cmd(
+            message=stdout_msg['realign'],
+            command=cmd,
+            debug=args.debug
         )
 
     if re.search(r"all|extract", args.stage):

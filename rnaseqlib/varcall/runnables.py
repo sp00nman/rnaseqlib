@@ -3,10 +3,11 @@ Collection of functions that execute external software or UNIX commands.
 """
 
 
-def rnaseq_align(genome_path,
+def rnaseq_align(star_genome,
                  read1,
                  read2,
-                 num_cpus):
+                 num_cpus,
+                 outfile_prefix):
     """
     source: http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq
     https://github.com/alexdobin/STAR
@@ -21,16 +22,21 @@ def rnaseq_align(genome_path,
     cmd_align = "STAR " \
                 "--genomeDir %s " \
                 "--readFilesIn %s %s " \
-                "--runThreadN %s " % (genome_path, read1, read2, num_cpus)
-
+                "--runThreadN %s " \
+                "--genomeLoad NoSharedMemory " \
+                "--outFilterIntronMotifs RemoveNoncanonical " \
+                "--outFileNamePrefix %s" % (star_genome, read1,
+                                            read2, num_cpus,
+                                            outfile_prefix)
     return cmd_align
 
 
-def star_index(genome_path,
+def star_index(novel_ref,
                genome,
                firstroundalignment,
-               sjdbOverhang,
-               num_cpus):
+               sjdb_overhang,
+               num_cpus,
+               outfile_prefix):
     """
     For the 2-pass STAR, a new index is then created using splice junction
     information contained in the file SJ.out.tab from the first pass.
@@ -38,14 +44,16 @@ def star_index(genome_path,
     cmd_star_index = "STAR " \
                      "--runMode genomeGenerate " \
                      "--genomeDir %s " \
-                     "--genomeFastaFiles %s " \
+                     "--genomeFastaFiles %s.fa " \
                      "--sjdbFileChrStartEnd %s " \
                      "--sjdbOverhang %s " \
-                     "--runThreadN %s" % (genome_path,
-                                          genome,
-                                          firstroundalignment,
-                                          sjdbOverhang,
-                                          num_cpus)
+                     "--runThreadN %s " \
+                     "--outFileNamePrefix %s" % (novel_ref,
+                                                 genome,
+                                                 firstroundalignment,
+                                                 sjdb_overhang,
+                                                 num_cpus,
+                                                 outfile_prefix)
     return cmd_star_index
 
 

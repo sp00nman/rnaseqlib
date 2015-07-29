@@ -18,6 +18,7 @@ def run_cmd(message, command, debug):
     """
 
     print message
+    print command # only for debug reasons
 
     logging.info(message)
     logging.debug(command)
