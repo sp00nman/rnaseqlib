@@ -25,6 +25,7 @@ def rnaseq_align(star_genome,
                 "--runThreadN %s " \
                 "--genomeLoad NoSharedMemory " \
                 "--outFilterIntronMotifs RemoveNoncanonical " \
+                "outSAMtype BAM" \
                 "--outFileNamePrefix %s" % (star_genome, read1,
                                             read2, num_cpus,
                                             outfile_prefix)
@@ -285,7 +286,9 @@ def varcall_gatk(input_file,
     return cmd_varcall_gatk
 
 
-def variant_filtering(input_file, output_file, ref_genome):
+def variant_filtering(input_file,
+                      output_file,
+                      ref_genome):
     """
     To filter the resulting callset, you will need to apply hard filters,
     as we do not yet have the RNAseq training/truth resources that would
@@ -299,7 +302,7 @@ def variant_filtering(input_file, output_file, ref_genome):
 
     cmd_filter = "java -jar $NGS_GATK/GenomeAnalysisTK.jar " \
                  "-T VariantFiltration " \
-                 "-R %s " \
+                 "-R %s.fa " \
                  "-V %s " \
                  "-window 35 " \
                  "-cluster 3 " \
@@ -311,3 +314,45 @@ def variant_filtering(input_file, output_file, ref_genome):
                             input_file,
                             output_file)
     return cmd_filter
+
+
+def convert2annovar(input_file,
+                    output_file):
+    """
+    Annotate vcf file with annovar.
+    """
+
+    cmd_annovar = "convert2annovar.pl " \
+                  "--format vcf4 " \
+                  "--includeinfo %s >" \
+                  "%s.annovar" % (input_file,
+                                 output_file)
+    return cmd_annovar
+
+
+def dbsnp_filter(dbtype,
+                 buildversion,
+                 input_file,
+                 annovar_dir):
+
+    cmd_dbsnp_filter = "annotate_variation.pl " \
+                        "--filter "\
+                        "--dbtype %s " \
+                        "--buildver %s " \
+                        "%s %s" % (dbtype,
+                                   buildversion,
+                                   input_file,
+                                   annovar_dir)
+    return cmd_dbsnp_filter
+
+
+def gene_annotation(buildversion,
+                    input_file,
+                    annovar_dir):
+
+    cmd_dbsnp_filter = "annotate_variation.pl " \
+                        "--buildver %s " \
+                        "%s %s" % (buildversion,
+                                   input_file,
+                                   annovar_dir)
+    return cmd_dbsnp_filter

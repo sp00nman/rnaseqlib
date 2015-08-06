@@ -4,8 +4,10 @@ import argparse
 import re
 import os
 import logging
-from varcall import runnables as rb
-from utils import tools as ts
+
+from rnaseqlib.utils import tools as ts
+from rnaseqlib.utils import parse_annovar as pa
+from rnaseqlib.varcall import runnables as rb
 
 
 if __name__ == '__main__':
@@ -18,29 +20,38 @@ if __name__ == '__main__':
                         help='Limit job submission to a particular '
                              'analysis stage.'
                         '[all,alignment,extract,duplicates,splitntrim,bqsr,'
-                        'bamfo,samtools,gatk,filter]')
+                        'bamfo,samtools,gatk,filter,dbsnp_filt,annotation]')
     parser.add_argument('--project_name', required=False, type=str,
                         help="name of the project")
     parser.add_argument('--read1', required=False, type=str,
                         help="For paired alignment, forward read.")
     parser.add_argument('--read2', required=False, type=str,
                         help="For paired alignment, reverse read.")
-    parser.add_argument('--sample_file', required=False, type=str,
-                        help="For region variant calling.")
+
     parser.add_argument('--sample_dir', required=False, type=str,
                         help="Path to sample directory")
-    parser.add_argument('--exec_dir', required=False, type=str,
-                        help="exec_dir")
     parser.add_argument('--output_dir', required=False, type=str,
                         help="Path to output directory.")
+
+    # aligner options
     parser.add_argument('--star_genome', required=False, type=str,
                         help="Genome directory of star aligner.")
     parser.add_argument('--ref_genome', required=False, type=str,
                         help="reference genome")
+    parser.add_argument('--star2pass', required=False, action='store_true',
+                        help="If set, STAR 2-pass mapping will be performed.")
+
+    # options for region specific variant calling
+    parser.add_argument('--sample_file', required=False, type=str,
+                        help="For region variant calling.")
     parser.add_argument('--region', required=False, type=str, default=False,
                         help="region eg. 20:30946147-31027122")
     parser.add_argument('--num_cpus', dest='num_cpus', required=False,
                         help='Number of cpus.')
+
+    # annovar specific options
+    parser.add_argument('--annovar', required=False, type=str,
+                        help="Annotate variant with annovar.")
 
     # defaults
     args = parser.parse_args()
@@ -50,12 +61,12 @@ if __name__ == '__main__':
         args.output_dir = os.getcwd()
     if not args.sample_dir:
         args.sample_dir = os.getcwd()
-    if not args.exec_dir:
-        args.exec_dir = home_dir + "/src"
     if not args.ref_genome:
         args.defuse_ref = home_dir + "/ref_genome"
     if not args.star_genome:
         args.star_genome = home_dir + "/star_genome"
+    if not args.annovar:
+        args.annovar = home_dir + "/" + "src" + "/" + "annovar" + "/" + "humandb"
     if not args.num_cpus:
         args.num_cpus = "1"
 
@@ -103,41 +114,42 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-        cmd = rb.star_index(
-            novel_ref=project_dir + "/"
-                      + "star_2pass",
-            genome=args.ref_genome,
-            firstroundalignment=project_dir + "/"
-                                + args.project_name + "."
-                                + "out.tab",
-            sjdb_overhang="75",
-            num_cpus=args.num_cpus,
-            outfile_prefix=project_dir + "/"
-                           + args.project_name + "."
-        )
+        if args.star2pass:
+            cmd = rb.star_index(
+                novel_ref=project_dir + "/"
+                          + "star_2pass",
+                genome=args.ref_genome,
+                firstroundalignment=project_dir + "/"
+                                    + args.project_name + "."
+                                    + file_ext['sj_out_tab'],
+                sjdb_overhang="75",
+                num_cpus=args.num_cpus,
+                outfile_prefix=project_dir + "/"
+                               + args.project_name + "."
+            )
 
-        status = ts.run_cmd(
-            message=stdout_msg['alignment_index'],
-            command=cmd,
-            debug=args.debug
-        )
+            status = ts.run_cmd(
+                message=stdout_msg['alignment_index'],
+                command=cmd,
+                debug=args.debug
+            )
 
-        cmd = rb.rnaseq_align(
-            star_genome=project_dir + "/"
-                        + "star_2pass",
-            read1=args.read1,
-            read2=args.read2,
-            num_cpus=args.num_cpus,
-            outfile_prefix=project_dir + "/"
-                           + args.project_name + "."
-                           + "_2pass_"
-        )
+            cmd = rb.rnaseq_align(
+                star_genome=project_dir + "/"
+                            + "star_2pass",
+                read1=args.read1,
+                read2=args.read2,
+                num_cpus=args.num_cpus,
+                outfile_prefix=project_dir + "/"
+                               + args.project_name + "."
+                               + "2pass_"
+            )
 
-        status = ts.run_cmd(
-            message=stdout_msg['realign'],
-            command=cmd,
-            debug=args.debug
-        )
+            status = ts.run_cmd(
+                message=stdout_msg['realign'],
+                command=cmd,
+                debug=args.debug
+            )
 
     if re.search(r"all|extract", args.stage):
 
@@ -162,16 +174,20 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|reorder", args.stage):
-
+        # reorder
         if args.region is False:
             sample_file = project_dir + "/" \
                         + args.project_name + "." \
-                        + file_ext['alignment_index']
+                        + file_ext['extract']
         else:
-            sample_file = project_dir + "/" \
-                          + args.project_name + "." \
-                          + file_ext['extract']
+            if args.star2pass:
+                sample_file = project_dir + "/" \
+                              + args.project_name + "." \
+                              + file_ext['star2pass']
+            else:
+                sample_file = project_dir + "/" \
+                              + args.project_name + "." \
+                              + file_ext['star_alignment']
 
         cmd = rb.reorder_sam(
             inbamfile=sample_file,
@@ -186,8 +202,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|sort_bam", args.stage):
-
+        # sort bam
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
                     + file_ext['reorder']
@@ -207,9 +222,14 @@ if __name__ == '__main__':
 
     if re.search(r"all|replace_rg", args.stage):
 
-        sample_file = project_dir + "/" \
-                    + args.project_name + "." \
-                    + file_ext['sort']
+        if args.region is False:
+            sample_file = project_dir + "/" \
+                        + args.project_name + "." \
+                        + file_ext['star2pass']
+        else:
+            sample_file = project_dir + "/" \
+                        + args.project_name + "." \
+                        + file_ext['sort']
 
         cmd = rb.replace_readgroups(
             input_file=sample_file,
@@ -338,7 +358,6 @@ if __name__ == '__main__':
 
     if re.search(r"all|gatk", args.stage):
 
-        # TODO: if for bqsr
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
                     + file_ext['splitntrim']
@@ -375,3 +394,93 @@ if __name__ == '__main__':
             command=cmd,
             debug=args.debug
         )
+
+    if re.search(r"all|snpdb_filt", args.stage):
+
+        sample_file = project_dir + "/" \
+                    + args.project_name + "." \
+                    + file_ext['filtering']
+
+        cmd = rb.convert2annovar(
+            input_file=sample_file,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['annotation']
+        )
+
+        status = ts.run_cmd(
+            message=stdout_msg['annotation'],
+            command=cmd,
+            debug=args.debug
+        )
+
+        cmd = rb.dbsnp_filter(
+            dbtype="snp138NonFlagged",
+            buildversion="hg19",
+            input_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['annotation'] + "."
+                        + "annovar",
+            annovar_dir=args.annovar
+        )
+
+        status = ts.run_cmd(
+            message=stdout_msg['dbsnp'],
+            command=cmd,
+            debug=args.debug
+        )
+
+    if re.search(r"all|annotation", args.stage):
+
+        sample_file = project_dir + "/" \
+                      + args.project_name + "." \
+                      + file_ext['annotation'] + "." \
+                      + "annovar" + "." \
+                      + file_ext['dbsnp']
+
+
+        cmd = rb.gene_annotation(
+            buildversion="hg19",
+            input_file=sample_file,
+            annovar_dir=args.annovar
+        )
+
+        status = ts.run_cmd(
+            message=stdout_msg['geneanno'],
+            command=cmd,
+            debug=args.debug
+        )
+
+        pa.parse_variant(
+            input_file=project_dir + "/"
+                       + args.project_name + "."
+                       + file_ext['annotation'] + "."
+                       + "annovar" + "."
+                       + file_ext['dbsnp'] + "."
+                       + file_ext['variant'],
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['annotation'] + "."
+                        + "annovar" + "."
+                        + file_ext['dbsnp'] + "."
+                        + file_ext['variant'] + "."
+                        + file_ext['keep']
+        )
+
+        pa.parse_exonic(
+            input_file=project_dir + "/"
+                       + args.project_name + "."
+                       + file_ext['annotation'] + "."
+                       + "annovar" + "."
+                       + file_ext['dbsnp'] + "."
+                       + file_ext['exonic'],
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['annotation'] + "."
+                        + "annovar" + "."
+                        + file_ext['dbsnp'] + "."
+                        + file_ext['exonic'] + "."
+                        + file_ext['keep']
+        )
+
+

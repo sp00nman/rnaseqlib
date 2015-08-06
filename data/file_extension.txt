@@ -1,10 +1,12 @@
 bam2fastq:          fastq
-alignment:          dummy_aligned.bam
+sj_out_tab:         SJ.out.tab
+star_alignment:     Aligned.out.bam
+star2pass:          2pass_Aligned.out.bam
 alignment_index:    aligned.bam
 extract:            extract_aligned.bam
 reorder:            reorder_extract_aligned.bam
 sort:               sort_reorder_extract_aligned.bam
-replace_rg:         replace_sort_reorder_extract_aligned.bam
+replace_rg:         replacerg_aligned.bam
 duplicates:         duplicates_removed.bam
 index:              index.bam
 splitntrim:         splitntrim.bam
@@ -13,3 +15,8 @@ bamfo:              varcall_bamfo.vcf
 samtools:           varcall_samtools.vcf
 gatk:               varcall_gatk.vcf
 filtering:          filtering_varcall_gatk.vcf
+annotation:         annovar
+dbsnp:              hg19_snp138NonFlagged_filtered
+variant:            variant_function
+exonic:             exonic_variant_function
+keep:               keep
