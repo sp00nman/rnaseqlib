@@ -1,7 +1,7 @@
-rnaseq_workflow
-=======================
+rnaseqlib 
+=========
 
-A collection of workflows and scripts to analyze RNA-seq data. 
+A simple collection of modules for RNA-seq analysis.
 
 + [Workflow for detecting and filtering fusions.](doc/fusion_workflow.md)
-+ [Workflow for calling variants.](doc/variant_calling.md)
++ [Workflow for calling variants with RNA-seq.](doc/variant_calling.md)
