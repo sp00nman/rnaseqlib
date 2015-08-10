@@ -1,6 +1,19 @@
-### rnaseq_varcall.py -h
+### Workflow for calling variants optimized for RNA sequencing data.
+
+Workflow is well described [here] (http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq)
+
+## Software requirements
+ 
++ [STAR] (https://github.com/alexdobin/STAR)
++ [Samtools] (http://samtools.sourceforge.net/)
++ [GATK] (https://www.broadinstitute.org/gatk/)
++ [ANNOVAR](http://annovar.openbioinformatics.org/en/latest/)
+
+## Usage
 
 ```bash
+user@node:/path/to/script/rnaseq_varcall.py -h
+
 usage: rnaseq_varcall.py [-h] [--debug DEBUG] [--stage STAGE]
                          [--project_name PROJECT_NAME] [--read1 READ1]
                          [--read2 READ2] [--sample_dir SAMPLE_DIR]
@@ -15,8 +28,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --debug DEBUG         Debug level
   --stage STAGE         Limit job submission to a particular analysis stage.[a
-                        ll,alignment,extract,duplicates,splitntrim,bqsr,bamfo,
-                        samtools,gatk,filter,annotation]
+                        ll,alignment,extract,replace_rg,duplicates,splitntrim,bqsr,
+                        bamfo,samtools,gatk,filter,annotation]
   --project_name PROJECT_NAME
                         name of the project
   --read1 READ1         For paired alignment, forward read.
@@ -35,4 +48,55 @@ optional arguments:
   --region REGION       region eg. 20:30946147-31027122
   --num_cpus NUM_CPUS   Number of cpus.
   --annovar ANNOVAR     Annotate variant with annovar.
-´´´
+
+```
+
+## --stage
+
+### [all]
+Process all analysis steps.
+
+### [alignment]
+Alignment with STAR and the following additional options set:
+```bash
+--outFilterIntronMotifs RemoveNoncanonical
+--outSAMtype BAM SortedByCoordinate
+
+```
+If ```--star2pass``` is set then a new index is created using splice junction information contained in the file SJ.out.tab from the first pass.
+
+### [replace_rg]
+Adds readgroup information and sorts by coordinate as described [here] (http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq)
+
+### [duplicates]
+Remove duplicate reads as described [here] (http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq)
+
+### [splitntrim]
+GATK tool ```-T SplitNCigarReads``` splits reads into exon segments and hard-clip sequences overhanging into the
+intronic regions. Additionally mapping qualities are reassigned.
+
+### [bqsr]
+Not implemented yet.
+
+### [gatk]
+GATK tool ```-T HaplotypeCaller``` caller with options.
+```bash
+-dontUseSoftClippedBases
+-recoverDanglingHeads
+-stand_call_conf 20.0
+
+```
+Minimum phred-scaled confidence is lowered to 20 according to GATK best practices recommendation.
+
+### [filter]
+GATK ```-T VariantFiltration``` is used to filter for:
+- at least 3 SNPs that are within a window of 35 bases ```-window 35 -cluster 3```
+- fisher strand value FS>30
+- Quality by Depth QD<2
+
+### [annotation]
+*.vcf files are converted to ANNOVAR file format and filtered for common variant that appear in snp138NonFlagged
+
+
+
+
