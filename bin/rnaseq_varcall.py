@@ -19,8 +19,9 @@ if __name__ == '__main__':
     parser.add_argument('--stage', dest='stage', required=False,
                         help='Limit job submission to a particular '
                              'analysis stage.'
-                        '[all,alignment,extract,duplicates,splitntrim,bqsr,'
-                        'bamfo,samtools,gatk,filter,dbsnp_filt,annotation]')
+                        '[all,alignment,star2pass,extract,duplicates,splitntrim,'
+                        'indel,bqsr,bamfo,samtools,gatk,filter,dbsnp_filt,'
+                        'annotation]')
     parser.add_argument('--project_name', required=False, type=str,
                         help="name of the project")
     parser.add_argument('--read1', required=False, type=str,
@@ -38,8 +39,16 @@ if __name__ == '__main__':
                         help="Genome directory of star aligner.")
     parser.add_argument('--ref_genome', required=False, type=str,
                         help="reference genome")
-    parser.add_argument('--star2pass', required=False, action='store_true',
-                        help="If set, STAR 2-pass mapping will be performed.")
+    parser.add_argument('--gtf', required=False, type=str,
+                        help="gtf file annotation")
+
+    # input files for indel realignment
+    parser.add_argument('--known_indels', required=False, type=str,
+                        help="List of known indel sites")
+
+    # input files for base recalibration
+    parser.add_argument('--dbsnp', required=False, type=str,
+                        help="List of kown snps.")
 
     # options for region specific variant calling
     parser.add_argument('--sample_file', required=False, type=str,
@@ -56,6 +65,8 @@ if __name__ == '__main__':
     # defaults
     args = parser.parse_args()
     home_dir = os.getenv("HOME")
+    #TODO: implement this as optional
+    read_length = 100
 
     if not args.output_dir:
         args.output_dir = os.getcwd()
@@ -101,6 +112,7 @@ if __name__ == '__main__':
 
         cmd = rb.rnaseq_align(
             star_genome=args.star_genome,
+            gtf=args.gtf,
             read1=args.read1,
             read2=args.read2,
             num_cpus=args.num_cpus,
@@ -114,42 +126,43 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-        if args.star2pass:
-            cmd = rb.star_index(
-                novel_ref=project_dir + "/"
-                          + "star_2pass",
-                genome=args.ref_genome,
-                firstroundalignment=project_dir + "/"
-                                    + args.project_name + "."
-                                    + file_ext['sj_out_tab'],
-                sjdb_overhang="75",
-                num_cpus=args.num_cpus,
-                outfile_prefix=project_dir + "/"
-                               + args.project_name + "."
-            )
+    if re.search(r"all|star2pass", args.stage):
+        cmd = rb.star_index(
+            novel_ref=project_dir + "/"
+                      + "star_2pass",
+            genome=args.ref_genome,
+            firstroundalignment=project_dir + "/"
+                                + args.project_name + "."
+                                + file_ext['sj_out_tab'],
+            sjdb_overhang=read_length-1,
+            num_cpus=args.num_cpus,
+            outfile_prefix=project_dir + "/"
+                           + args.project_name + "."
+        )
 
-            status = ts.run_cmd(
-                message=stdout_msg['alignment_index'],
-                command=cmd,
-                debug=args.debug
-            )
+        status = ts.run_cmd(
+            message=stdout_msg['alignment_index'],
+            command=cmd,
+            debug=args.debug
+        )
 
-            cmd = rb.rnaseq_align(
-                star_genome=project_dir + "/"
-                            + "star_2pass",
-                read1=args.read1,
-                read2=args.read2,
-                num_cpus=args.num_cpus,
-                outfile_prefix=project_dir + "/"
-                               + args.project_name + "."
-                               + "2pass_"
-            )
+        cmd = rb.rnaseq_align(
+            star_genome=project_dir + "/"
+                       + "star_2pass",
+            gtf=args.gtf,
+            read1=args.read1,
+            read2=args.read2,
+            num_cpus=args.num_cpus,
+            outfile_prefix=project_dir + "/"
+                          + args.project_name + "."
+                          + "2pass_"
+        )
 
-            status = ts.run_cmd(
-                message=stdout_msg['realign'],
-                command=cmd,
-                debug=args.debug
-            )
+        status = ts.run_cmd(
+            message=stdout_msg['realign'],
+            command=cmd,
+            debug=args.debug
+        )
 
     if re.search(r"all|extract", args.stage):
 
@@ -223,9 +236,14 @@ if __name__ == '__main__':
     if re.search(r"all|replace_rg", args.stage):
 
         if args.region is False:
-            sample_file = project_dir + "/" \
-                        + args.project_name + "." \
-                        + file_ext['star2pass']
+            if re.search(r"star2pass", args.stage):
+                sample_file = project_dir + "/" \
+                            + args.project_name + "." \
+                            + file_ext['star2pass']
+            else:
+                sample_file = project_dir + "/" \
+                            + args.project_name + "." \
+                            + file_ext['star_alignment']
         else:
             sample_file = project_dir + "/" \
                         + args.project_name + "." \
@@ -297,11 +315,68 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|bqsr", args.stage):
+    if re.search(r"all|indel", args.stage):
 
         sample_file = project_dir + "/" \
                         + args.project_name + "." \
                         + file_ext['splitntrim']
+
+        cmd = rb.target_creator(
+            input_file=sample_file,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['target'],
+            ref_genome=args.ref_genome,
+            known=args.known_indels
+        )
+
+        status = ts.run_cmd(
+            message=stdout_msg['target'],
+            command=cmd,
+            debug=args.debug
+        )
+
+        cmd = rb.indel_realignment(
+            input_file=sample_file,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['indel'],
+            ref_genome=args.ref_genome,
+            known=args.known_indels,
+            target=project_dir + "/"
+                   + args.project_name + "."
+                   + file_ext['target']
+        )
+
+        status =ts.run_cmd(
+            message=stdout_msg['indel'],
+            command=cmd,
+            debug=args.debug
+        )
+
+    if re.search(r"all|bqsr", args.stage):
+
+        sample_file = project_dir + "/" \
+                        + args.project_name + "." \
+                        + file_ext['indel']
+
+        cmd = rb.bqsrI(
+            input_file=sample_file,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['bqsrI'],
+            ref_genome=args.ref_genome,
+            known=args.known_indels,
+            dbsnp=args.dbsnp
+        )
+
+        status = ts.run_cmd(
+            message=stdout_msg['bqsrI'],
+            command=cmd,
+            debug=args.debug
+        )
+
+        #TODO: implement plot recalibration steps
 
         cmd = rb.bqsr(
             input_file=sample_file,
@@ -309,8 +384,10 @@ if __name__ == '__main__':
                         + args.project_name + "."
                         + file_ext['bqsr'],
             ref_genome=args.ref_genome,
-            recal_report=args.project_name + "."
-                        + "splitntrim")
+            bqsr=project_dir + "/"
+                + args.project_name + "."
+                + file_ext['bqsrI']
+        )
 
         status = ts.run_cmd(
             message=stdout_msg['bqsr'],
@@ -360,7 +437,7 @@ if __name__ == '__main__':
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
-                    + file_ext['splitntrim']
+                    + file_ext['bqsr']
 
         cmd = rb.varcall_gatk(
             input_file=sample_file,

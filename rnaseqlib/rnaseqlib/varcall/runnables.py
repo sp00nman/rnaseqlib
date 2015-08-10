@@ -4,6 +4,7 @@ Collection of functions that execute external software or UNIX commands.
 
 
 def rnaseq_align(star_genome,
+                 gtf,
                  read1,
                  read2,
                  num_cpus,
@@ -21,12 +22,13 @@ def rnaseq_align(star_genome,
 
     cmd_align = "STAR " \
                 "--genomeDir %s " \
+                "--sjdbGTFfile %s " \
                 "--readFilesIn %s %s " \
                 "--runThreadN %s " \
                 "--genomeLoad NoSharedMemory " \
                 "--outFilterIntronMotifs RemoveNoncanonical " \
-                "outSAMtype BAM" \
-                "--outFileNamePrefix %s" % (star_genome, read1,
+                "--outSAMtype BAM SortedByCoordinate " \
+                "--outFileNamePrefix %s" % (star_genome, gtf, read1,
                                             read2, num_cpus,
                                             outfile_prefix)
     return cmd_align
@@ -41,6 +43,7 @@ def star_index(novel_ref,
     """
     For the 2-pass STAR, a new index is then created using splice junction
     information contained in the file SJ.out.tab from the first pass.
+    --sjdbOverhang
     """
     cmd_star_index = "STAR " \
                      "--runMode genomeGenerate " \
@@ -194,10 +197,75 @@ def splitntrim(input_file,
     return cmd_splitntrim
 
 
+def target_creator(input_file,
+                   output_file,
+                   ref_genome,
+                   known):
+    """
+    Perform local realignment around indels to correct mapping-related artifacts.
+    """
+
+    cmd_target = "java -Xmx6g -jar $NGS_GATK/GenomeAnalysisTK.jar " \
+                 "-T RealignerTargetCreator " \
+                 "-R %s.fa " \
+                 "-I %s " \
+                 "-known %s " \
+                 "-o %s" % (ref_genome,
+                            input_file,
+                            known,
+                            output_file)
+    return cmd_target
+
+
+def indel_realignment(input_file,
+                      output_file,
+                      ref_genome,
+                      known,
+                      target):
+
+
+    cmd_indel = "java -Xmx6g -jar $NGS_GATK/GenomeAnalysisTK.jar " \
+                "-T IndelRealigner " \
+                "-R %s.fa " \
+                "-I %s " \
+                "-targetIntervals %s " \
+                "-known %s " \
+                "-o %s" % (ref_genome,
+                           input_file,
+                           target,
+                           known,
+                           output_file)
+
+    return cmd_indel
+
+def bqsrI(input_file,
+          output_file,
+          ref_genome,
+          known,
+          dbsnp):
+    """
+    Analyze patterns of covariation in the sequence dataset.
+    """
+
+    cmd_bqsrI = "java -Xmx6g -jar $NGS_GATK/GenomeAnalysisTK.jar " \
+                 "-T BaseRecalibrator " \
+                 "-R %s.fa " \
+                 "-I %s " \
+                 "-knownSites %s " \
+                 "-knownSites %s " \
+                 "-o %s" % (ref_genome,
+                            input_file,
+                            known,
+                            dbsnp,
+                            output_file)
+    return cmd_bqsrI
+
+
+
 def bqsr(input_file,
          output_file,
          ref_genome,
-         recal_report):
+         bqsr):
     """
     source: http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq
     - We do recommend running base recalibration (BQSR). Even though the
@@ -214,10 +282,10 @@ def bqsr(input_file,
                      "-T PrintReads " \
                      "-R %s.fa " \
                      "-I %s " \
-                     "-BQSR %s.recal_data.grp " \
+                     "-BQSR %s " \
                      "-o %s " % (ref_genome,
                                  input_file,
-                                 recal_report,
+                                 bqsr,
                                  output_file)
     return cmd_splitntrim
 

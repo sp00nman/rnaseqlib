@@ -9,6 +9,9 @@ replace_rg:         Replace readgroups.
 duplicates:         Remove duplicate reads.
 index:              Index BAM file
 splitntrim:         Splitntrim
+target:             Create target list of intervals to be realigned.
+indel:              Perform realignment of the target intervals.
+bqsrI:              Analyze patterns of covariation in the sequence data.(bqsrI)
 bqsr:               BQSR variant recalibration
 bamfo:              Variant calling with bamfo.
 samtools:           Variant calling with samtools.

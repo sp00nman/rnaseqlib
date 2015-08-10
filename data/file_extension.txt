@@ -1,7 +1,7 @@
 bam2fastq:          fastq
 sj_out_tab:         SJ.out.tab
-star_alignment:     Aligned.out.bam
-star2pass:          2pass_Aligned.out.bam
+star_alignment:     Aligned.sortedByCoord.out.bam
+star2pass:          2pass_Aligned.sortedByCoord.out.bam
 alignment_index:    aligned.bam
 extract:            extract_aligned.bam
 reorder:            reorder_extract_aligned.bam
@@ -10,7 +10,10 @@ replace_rg:         replacerg_aligned.bam
 duplicates:         duplicates_removed.bam
 index:              index.bam
 splitntrim:         splitntrim.bam
-bqsr:               bqsr.bam
+target:             realignment_targets.list
+indel:              realigned_reads.bam
+bqsrI:              recal_data.table
+bqsr:               recal_reads.bam
 bamfo:              varcall_bamfo.vcf
 samtools:           varcall_samtools.vcf
 gatk:               varcall_gatk.vcf
