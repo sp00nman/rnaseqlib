@@ -8,6 +8,11 @@ Workflow is well described [here] (http://gatkforums.broadinstitute.org/discussi
 + [Samtools] (http://samtools.sourceforge.net/)
 + [GATK] (https://www.broadinstitute.org/gatk/)
 + [ANNOVAR](http://annovar.openbioinformatics.org/en/latest/)
++ [Bedtools](https://github.com/arq5x/bedtools2)
+
+##### Python modules
++ [PyVCF]()
++ [pandas](https://github.com/pydata/pandas)
 
 ## Usage
 
@@ -88,11 +93,19 @@ GATK tool ```-T HaplotypeCaller``` caller with options.
 ```
 Minimum phred-scaled confidence is lowered to 20 according to GATK best practices recommendation.
 
-### [filter]
+### [gatk-filter]
 GATK ```-T VariantFiltration``` is used to filter for:
-- at least 3 SNPs that are within a window of 35 bases ```-window 35 -cluster 3```
-- fisher strand value FS>30
-- Quality by Depth QD<2
+- [1] at least 3 SNPs that are within a window of 35 bases ```-window 35 -cluster 3```
+- [2] fisher strand value FS>30
+- [3] Quality by Depth QD<2
+
+### [inhouse-filter] [not implemented yet]
+- [4] filter for variants within homopolymer runs >=5 ```[##FILTER=<ID=HRun,Description="HRun >= 5">]```
+- [5] remove sites from repetitive regions (according to RepeatMasker annotation)
+- [6] filter for common variants in snp138NonFlagged
+
+#### suggested (Reumers et al., Nature Biotech., 2012):
+- [7] filter for SNVs located within 5 bases from and indel
 
 ### [annotation]
 *.vcf files are converted to ANNOVAR file format and filtered for common variant that appear in snp138NonFlagged
