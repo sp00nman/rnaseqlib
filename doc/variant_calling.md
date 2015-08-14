@@ -9,6 +9,10 @@ Workflow is well described [here] (http://gatkforums.broadinstitute.org/discussi
 + [GATK] (https://www.broadinstitute.org/gatk/)
 + [ANNOVAR](http://annovar.openbioinformatics.org/en/latest/)
 
+##### Python modules
++ [PyVCF](https://github.com/jamescasbon/PyVCF)
++ [pandas](https://github.com/pydata/pandas)
+
 ## Usage
 
 ```bash
