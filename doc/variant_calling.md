@@ -8,9 +8,10 @@ Workflow is well described [here] (http://gatkforums.broadinstitute.org/discussi
 + [Samtools] (http://samtools.sourceforge.net/)
 + [GATK] (https://www.broadinstitute.org/gatk/)
 + [ANNOVAR](http://annovar.openbioinformatics.org/en/latest/)
++ [Bedtools](https://github.com/arq5x/bedtools2)
 
 ##### Python modules
-+ [PyVCF](https://github.com/jamescasbon/PyVCF)
++ [PyVCF]()
 + [pandas](https://github.com/pydata/pandas)
 
 ## Usage
