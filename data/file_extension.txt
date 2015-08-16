@@ -23,3 +23,6 @@ dbsnp:              hg19_snp138NonFlagged_filtered
 variant:            variant_function
 exonic:             exonic_variant_function
 keep:               keep
+coordinates:        coordinates.txt
+seq:                coordinate_sequences.txt
+hrun:               hrun_filtering_varcall_gatk.vcf

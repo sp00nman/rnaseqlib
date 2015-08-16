@@ -5,7 +5,6 @@ Filter for variants that fall within homopolymer sites.
 import vcf
 import re
 from rnaseqlib.utils import tools as ts
-from rnaseqlib.varcall import runnables as rb
 
 
 def extract_pos2bed(input_file,
@@ -27,9 +26,11 @@ def extract_pos2bed(input_file,
         vcf_reader = vcf.Reader(vcf_file)
 
         for record in vcf_reader:
+            # zb AAAA [A] AAAA ; [A]=variant
+            # 4 nucleotides left and right from variant position
             out_file.writelines(
                 record.CHROM + "\t"
-                + str(record.POS - nucleo_num) + "\t"
+                + str(record.POS - (nucleo_num +1)) + "\t"
                 + str(record.POS + nucleo_num) + "\n"
             )
 
@@ -40,49 +41,43 @@ def extract_pos2bed(input_file,
     return None
 
 
-def get_coordinates(bedfile,
-                    ref_genome,
-                    output_file):
-
-    cmd = rb.bedtools_getfasta(
-        bedfile=bedfile,
-        ref_genome=ref_genome,
-        output_file=output_file
-    )
-
-    return cmd
-
-
-def annotate_variants(coordinates,
+def annotate_variants(coord_seq,
                       input_file,
                       output_file,
                       nucleo_num):
 
     coord_dic = ts.load_dictionary(
-        input_file=coordinates,
+        input_file=coord_seq,
         sep='\t'
     )
 
-    vcf_file = open(input_file, 'r')
-    vcf_writer = vcf.Writer(open(output_file, 'w'))
+    in_handle = open(input_file, 'r')
+    out_handle = open(output_file, 'w')
 
     #TODO: print header first
 
     try:
-        vcf_reader = vcf.Reader(vcf_file)
+        vcf_reader = vcf.Reader(in_handle)
+        vcf_writer = vcf.Writer(out_handle, vcf_reader)
 
         for record in vcf_reader:
             key = record.CHROM + ":" \
-                  + str(record.POS - nucleo_num) + "-" \
+                  + str(record.POS - (nucleo_num+1)) + "-" \
                   + str(record.POS + nucleo_num)
 
             seq = coord_dic[key]
-            seq_homopolymer = seq[nucleo_num+1]*nucleo_num
-            if (re.match(seq_homopolymer, seq[0:nucleo_num]) or \
-                        re.match(seq_homopolymer, seq[nucleo_num+1])):
+            seq_homopolymer = seq[nucleo_num] * nucleo_num
+
+            if (re.match(seq_homopolymer,
+                         seq[0:nucleo_num-1]) or \
+                        re.match(seq_homopolymer,
+                                 seq[nucleo_num+1:len(seq)]
+                        )
+            ):
                 record.FILTER.append('HRun')
-                vcf_writer.write_record(record)
+
+            vcf_writer.write_record(record)
 
     finally:
-            vcf_file.close()
-
+            in_handle.close()
+            out_handle.close()

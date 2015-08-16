@@ -32,7 +32,7 @@ def run_cmd(message, command, debug):
     return status
 
 
-def load_dictionary(file):
+def load_dictionary(input_file, sep=':'):
     """
     Reads in files of the following format:
     key1: value1
@@ -44,11 +44,12 @@ def load_dictionary(file):
     d = {}
 
     try:
-        file_handle = open(file)
+        file_handle = open(input_file)
 
         for line in file_handle:
-            key_value_pair = line.split(':')
-            d[key_value_pair[0].strip(' ')] = key_value_pair[1].strip(' ').rstrip('\n')
+            key_value_pair = line.split(sep)
+            d[key_value_pair[0].strip(' ')] = \
+                key_value_pair[1].strip(' ').rstrip('\n')
 
         file_handle.close()
 

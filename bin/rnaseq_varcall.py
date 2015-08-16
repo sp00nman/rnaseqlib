@@ -8,6 +8,7 @@ import logging
 from rnaseqlib.utils import tools as ts
 from rnaseqlib.utils import parse_annovar as pa
 from rnaseqlib.varcall import runnables as rb
+from rnaseqlib.varcall import homopolymer_filter as hf
 
 
 if __name__ == '__main__':
@@ -48,7 +49,7 @@ if __name__ == '__main__':
 
     # input files for base recalibration
     parser.add_argument('--dbsnp', required=False, type=str,
-                        help="List of kown snps.")
+                        help="List of known snps.")
 
     # options for region specific variant calling
     parser.add_argument('--sample_file', required=False, type=str,
@@ -472,11 +473,53 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|snpdb_filt", args.stage):
+    if re.search(r"all|hrun", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
                     + file_ext['filtering']
+
+        hf.extract_pos2bed(
+            input_file=sample_file,
+            bedfile=project_dir + "/"
+                    + args.project_name + "."
+                    + file_ext['coordinates'],
+            nucleo_num=4
+        )
+
+        # get coordinates from vcf file
+        cmd = rb.bedtools_getfasta(
+            bedfile=project_dir + "/"
+                    + args.project_name + "."
+                    + file_ext['coordinates'],
+            ref_genome=args.ref_genome,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['seq']
+        )
+
+        status = ts.run_cmd(
+            message=stdout_msg['hrun'],
+            command=cmd,
+            debug=args.debug
+        )
+
+        hf.annotate_variants(
+            coord_seq=project_dir + "/"
+                      + args.project_name + "."
+                      + file_ext['seq'],
+            input_file=sample_file,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['hrun'],
+            nucleo_num=4
+        )
+
+    if re.search(r"all|snpdb_filt", args.stage):
+
+        sample_file = project_dir + "/" \
+                    + args.project_name + "." \
+                    + file_ext['hrun']
 
         cmd = rb.convert2annovar(
             input_file=sample_file,

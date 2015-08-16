@@ -402,6 +402,9 @@ def dbsnp_filter(dbtype,
                  buildversion,
                  input_file,
                  annovar_dir):
+    """
+    Filter for dbsnp database.
+    """
 
     cmd_dbsnp_filter = "annotate_variation.pl " \
                         "--filter "\
@@ -417,6 +420,9 @@ def dbsnp_filter(dbtype,
 def gene_annotation(buildversion,
                     input_file,
                     annovar_dir):
+    """
+    Annotate variants.
+    """
 
     cmd_dbsnp_filter = "annotate_variation.pl " \
                         "--buildver %s " \
@@ -424,3 +430,20 @@ def gene_annotation(buildversion,
                                    input_file,
                                    annovar_dir)
     return cmd_dbsnp_filter
+
+
+def bedtools_getfasta(bedfile,
+                      ref_genome,
+                      output_file,):
+    """
+    Extracts DNA sequences into a fasta file based on feature coordinates.
+    """
+
+    cmd_getfasta = "bedtools getfasta " \
+                   "-fi %s.fa " \
+                   "-bed %s " \
+                   "-fo %s " \
+                   "-tab" % (ref_genome,
+                             bedfile,
+                             output_file)
+    return cmd_getfasta
