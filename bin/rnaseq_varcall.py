@@ -484,7 +484,8 @@ if __name__ == '__main__':
             bedfile=project_dir + "/"
                     + args.project_name + "."
                     + file_ext['coordinates'],
-            nucleo_num=4
+            nucleo_num=4,
+            dis=1
         )
 
         # get coordinates from vcf file
@@ -512,7 +513,8 @@ if __name__ == '__main__':
             output_file=project_dir + "/"
                         + args.project_name + "."
                         + file_ext['hrun'],
-            nucleo_num=4
+            nucleo_num=4,
+            dis=1
         )
 
     if re.search(r"all|snpdb_filt", args.stage):
