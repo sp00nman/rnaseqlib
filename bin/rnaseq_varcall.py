@@ -9,6 +9,7 @@ from rnaseqlib.utils import tools as ts
 from rnaseqlib.utils import parse_annovar as pa
 from rnaseqlib.varcall import runnables as rb
 from rnaseqlib.varcall import homopolymer_filter as hf
+from rnaseqlib.varcall import filter_vcf as fv
 
 
 if __name__ == '__main__':
@@ -517,17 +518,35 @@ if __name__ == '__main__':
             dis=1
         )
 
-    if re.search(r"all|snpdb_filt", args.stage):
+    if re.search(r"all|annovar", args.stage):
 
         sample_file = project_dir + "/" \
-                    + args.project_name + "." \
-                    + file_ext['hrun']
+                     + args.project_name + "." \
+                     + file_ext['hrun']
 
-        cmd = rb.convert2annovar(
-            input_file=sample_file,
+        cmd = rb.run_annovar(
+            vcf_file=sample_file,
+            protocol="ensGene,"
+                     + "cytoBand,"
+                     + "phastConsElements46way,"
+                     + "genomicSuperDups,"
+                     + "avsnp142,"
+                     + "snp138NonFlagged,"
+                     + "1000g2014oct_all,"
+                     + "esp6500siv2_all,"
+                     + "cosmic70,"
+                     + "clinvar_20150330,"
+                     + "ljb26_all,"
+                     + "caddgt10,"
+                     + "caddindel,"
+                     + "popfreq_max_20150413,"
+                     + "mitimpact2",
             output_file=project_dir + "/"
                         + args.project_name + "."
-                        + file_ext['annotation']
+                        + file_ext['annotation'],
+            operation="g,r,r,r,f,f,f,f,f,f,f,f,f,f,f",
+            buildversion="hg19",
+            annovar_dir=args.annovar
         )
 
         status = ts.run_cmd(
@@ -536,73 +555,103 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-        cmd = rb.dbsnp_filter(
-            dbtype="snp138NonFlagged",
-            buildversion="hg19",
-            input_file=project_dir + "/"
-                        + args.project_name + "."
-                        + file_ext['annotation'] + "."
-                        + "annovar",
-            annovar_dir=args.annovar
-        )
-
-        status = ts.run_cmd(
-            message=stdout_msg['dbsnp'],
-            command=cmd,
-            debug=args.debug
-        )
-
-    if re.search(r"all|annotation", args.stage):
+    if re.search(r"all|inhouse", args.stage):
 
         sample_file = project_dir + "/" \
-                      + args.project_name + "." \
-                      + file_ext['annotation'] + "." \
-                      + "annovar" + "." \
-                      + file_ext['dbsnp']
+                    + args.project_name + "." \
+                    + file_ext['annovar']
 
-
-        cmd = rb.gene_annotation(
-            buildversion="hg19",
+        fv.filter_vcf(
             input_file=sample_file,
-            annovar_dir=args.annovar
+            output_file=project_dir + "/" \
+                        + args.project_name + "." \
+                        + file_ext['inhouse']
         )
 
-        status = ts.run_cmd(
-            message=stdout_msg['geneanno'],
-            command=cmd,
-            debug=args.debug
-        )
-
-        pa.parse_variant(
-            input_file=project_dir + "/"
-                       + args.project_name + "."
-                       + file_ext['annotation'] + "."
-                       + "annovar" + "."
-                       + file_ext['dbsnp'] + "."
-                       + file_ext['variant'],
-            output_file=project_dir + "/"
-                        + args.project_name + "."
-                        + file_ext['annotation'] + "."
-                        + "annovar" + "."
-                        + file_ext['dbsnp'] + "."
-                        + file_ext['variant'] + "."
-                        + file_ext['keep']
-        )
-
-        pa.parse_exonic(
-            input_file=project_dir + "/"
-                       + args.project_name + "."
-                       + file_ext['annotation'] + "."
-                       + "annovar" + "."
-                       + file_ext['dbsnp'] + "."
-                       + file_ext['exonic'],
-            output_file=project_dir + "/"
-                        + args.project_name + "."
-                        + file_ext['annotation'] + "."
-                        + "annovar" + "."
-                        + file_ext['dbsnp'] + "."
-                        + file_ext['exonic'] + "."
-                        + file_ext['keep']
-        )
-
-
+    # if re.search(r"all|snpdb_filt", args.stage):
+    #
+    #     sample_file = project_dir + "/" \
+    #                 + args.project_name + "." \
+    #                 + file_ext['hrun']
+    #
+    #     cmd = rb.convert2annovar(
+    #         input_file=sample_file,
+    #         output_file=project_dir + "/"
+    #                     + args.project_name + "."
+    #                     + file_ext['annotation']
+    #     )
+    #
+    #     status = ts.run_cmd(
+    #         message=stdout_msg['annotation'],
+    #         command=cmd,
+    #         debug=args.debug
+    #     )
+    #
+    #     cmd = rb.dbsnp_filter(
+    #         dbtype="snp138NonFlagged",
+    #         buildversion="hg19",
+    #         input_file=project_dir + "/"
+    #                     + args.project_name + "."
+    #                     + file_ext['annotation'] + "."
+    #                     + "annovar",
+    #         annovar_dir=args.annovar
+    #     )
+    #
+    #     status = ts.run_cmd(
+    #         message=stdout_msg['dbsnp'],
+    #         command=cmd,
+    #         debug=args.debug
+    #     )
+    #
+    # if re.search(r"all|annotation", args.stage):
+    #
+    #     sample_file = project_dir + "/" \
+    #                   + args.project_name + "." \
+    #                   + file_ext['annotation'] + "." \
+    #                   + "annovar" + "." \
+    #                   + file_ext['dbsnp']
+    #
+    #
+    #     cmd = rb.gene_annotation(
+    #         buildversion="hg19",
+    #         input_file=sample_file,
+    #         annovar_dir=args.annovar
+    #     )
+    #
+    #     status = ts.run_cmd(
+    #         message=stdout_msg['geneanno'],
+    #         command=cmd,
+    #         debug=args.debug
+    #     )
+    #
+    #     pa.parse_variant(
+    #         input_file=project_dir + "/"
+    #                    + args.project_name + "."
+    #                    + file_ext['annotation'] + "."
+    #                    + "annovar" + "."
+    #                    + file_ext['dbsnp'] + "."
+    #                    + file_ext['variant'],
+    #         output_file=project_dir + "/"
+    #                     + args.project_name + "."
+    #                     + file_ext['annotation'] + "."
+    #                     + "annovar" + "."
+    #                     + file_ext['dbsnp'] + "."
+    #                     + file_ext['variant'] + "."
+    #                     + file_ext['keep']
+    #     )
+    #
+    #     pa.parse_exonic(
+    #         input_file=project_dir + "/"
+    #                    + args.project_name + "."
+    #                    + file_ext['annotation'] + "."
+    #                    + "annovar" + "."
+    #                    + file_ext['dbsnp'] + "."
+    #                    + file_ext['exonic'],
+    #         output_file=project_dir + "/"
+    #                     + args.project_name + "."
+    #                     + file_ext['annotation'] + "."
+    #                     + "annovar" + "."
+    #                     + file_ext['dbsnp'] + "."
+    #                     + file_ext['exonic'] + "."
+    #                     + file_ext['keep']
+    #     )

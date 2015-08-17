@@ -384,6 +384,36 @@ def variant_filtering(input_file,
     return cmd_filter
 
 
+def run_annovar(vcf_file,
+                protocol,
+                output_file,
+                operation,
+                buildversion,
+                annovar_dir,):
+    """
+    Annotate VCF file with annovar_150322.
+    """
+
+    cmd_annovar = "table_annovar.pl " \
+                  "--protocol %s " \
+                  "--operation %s " \
+                  "--outfile %s " \
+                  "--buildver %s " \
+                  "--remove " \
+                  "--otherinfo " \
+                  "--nastring . " \
+                  "--vcfinput " \
+                  "%s " \
+                  "%s" % (protocol,
+                          operation,
+                          output_file,
+                          buildversion,
+                          vcf_file,
+                          annovar_dir)
+
+    return cmd_annovar
+
+
 def convert2annovar(input_file,
                     output_file):
     """
