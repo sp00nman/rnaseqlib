@@ -99,13 +99,12 @@ GATK ```-T VariantFiltration``` is used to filter for:
 - [2] fisher strand value FS>30
 - [3] Quality by Depth QD<2
 
-### [inhouse-filter] [not implemented yet]
+### [inhouse-filter]
 - [4] filter for variants within homopolymer runs >=5 ```[##FILTER=<ID=HRun,Description="HRun >= 5">]```
-- [5] remove sites from repetitive regions (according to RepeatMasker annotation)
-- [6] filter for common variants in snp138NonFlagged
 
-#### suggested (Reumers et al., Nature Biotech., 2012):
-- [7] filter for SNVs located within 5 bases from and indel
+### [inhouse-filter] [not implemented yet]
+- [5] remove sites from repetitive regions (according to RepeatMasker annotation)
+- [6] filter for SNVs located within 5 bases from and indel (Reumers et al., Nature Biotech., 2012)
 
 ### [annovar]
 Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/en/latest/user-guide/download/) :
