@@ -99,16 +99,35 @@ GATK ```-T VariantFiltration``` is used to filter for:
 - [2] fisher strand value FS>30
 - [3] Quality by Depth QD<2
 
-### [inhouse-filter] [not implemented yet]
+### [inhouse-filter]
 - [4] filter for variants within homopolymer runs >=5 ```[##FILTER=<ID=HRun,Description="HRun >= 5">]```
+
+### [inhouse-filter] [not implemented yet]
 - [5] remove sites from repetitive regions (according to RepeatMasker annotation)
-- [6] filter for common variants in snp138NonFlagged
+- [6] filter for SNVs located within 5 bases from and indel (Reumers et al., Nature Biotech., 2012)
 
-#### suggested (Reumers et al., Nature Biotech., 2012):
-- [7] filter for SNVs located within 5 bases from and indel
+### [annovar]
+Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/en/latest/user-guide/download/) :
 
-### [annotation]
-*.vcf files are converted to ANNOVAR file format and filtered for common variant that appear in snp138NonFlagged
+| NAME                   | DESCRIPTION                 | DATE   |
+| :--------------------- |:----------------------------|:-------|
+| cytoBand               | cytoBand annotation             |   ?     |
+| phastConsElements46way | ?         |     ?   |
+| avsnp142               | dbSNP142 with allelic splitting and left-normalization	| 20141228 |
+| snp138NonFlagged       | dbSNP with ANNOVAR index files, after removing those flagged SNPs (SNPs < 1% minor allele frequency (MAF) (or unknown), mapping only once to reference assembly, flagged in dbSnp as "clinically associated") | 20140222 |
+| 1000g2014oct_all       | alternative allele frequency data in 1000 Genomes Project for autosomes | 20141216 |
+| esp6500siv2_all        | alternative allele frequency in All subjects in the NHLBI-ESP project with 6500 exomes, including the indel calls and the chrY calls. This is lifted over from hg19 by myself. | 20141222 |
+| cosmic70              | COSMIC database version 70  | 20140224 |
+| clinvar_20150330       | CLINVAR database with Variant Clinical Significance (unknown, untested, non-pathogenic, probable-non-pathogenic, probable-pathogenic, pathogenic, drug-response, histocompatibility, other) and Variant disease name | 20150413 | 
+| genomicSuperDups       |  ?                           |    ?    |
+| ljb26_all              | whole-exome SIFT, PolyPhen2 HDIV, PolyPhen2 HVAR, LRT, MutationTaster, MutationAssessor, FATHMM, MetaSVM, MetaLR, VEST, CADD, GERP++, PhyloP and SiPhy scores from dbNSFP version 2.6 | 20140925 |
+| caddgt10               |     ?                        |    ?    |
+| caddindel              |     ?                       |     ?   |
+| popfreq_max_20150413   | A database containing all allele frequency from 1000G, ESP6500, ExAC and CG46 | 20150413 |
+| mitimpact2             |pathogenicity predictions of human mitochondrial missense variants | 20150520  |
+
+
+
 
 
 
