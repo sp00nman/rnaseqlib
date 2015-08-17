@@ -114,13 +114,16 @@ def filter_vcf(input_file,
                 COUNT_SYNONYMOUS += 1
 
             # filter variants
-            if not record.FILTER:
-                if not record.INFO['snp138NonFlagged']:
-                    if record.INFO['1000g2014oct_all'] < 0.1:
-                        if record.INFO['ExonicFunc.ensGene'] \
-                                is not "synonymous_SNV":
-                            COUNT_RARE_VARIANTS += 1
-                            vcf_writer.write_record(record)
+            if not record.FILTER \
+                    and record.INFO['snp138NonFlagged'] == [None] \
+                    and record.INFO['1000g2014oct_all'] < 0.1 \
+                    and record.INFO['ExonicFunc.ensGene'] \
+                            is not "synonymous_SNV":
+                # separate tables for
+                # exonic
+                # UTR ...q
+                COUNT_RARE_VARIANTS += 1
+                vcf_writer.write_record(record)
 
         print COUNT_PASS, COUNT_FS, COUNT_QD, COUNT_SNPCLUSTER, COUNT_LOWQUAL,\
             COUNT_HRUN, COUNT_NHRUN, COUNT_TOTAL, COUNT_INDEL, COUNT_SNV, \
