@@ -34,7 +34,7 @@ optional arguments:
   --debug DEBUG         Debug level
   --stage STAGE         Limit job submission to a particular analysis stage.[a
                         ll,alignment,extract,replace_rg,duplicates,splitntrim,bqsr,
-                        bamfo,samtools,gatk,filter,annotation]
+                        bamfo,samtools,gatk,gatk_filter,hrun,annovar,inhouse]
   --project_name PROJECT_NAME
                         name of the project
   --read1 READ1         For paired alignment, forward read.
@@ -95,7 +95,7 @@ Minimum phred-scaled confidence is lowered to 20 according to GATK best practice
 
 ## Variant Filtering Steps
 
-### [gatk-filter]
+### [gatk_filter]
 GATK ```-T VariantFiltration``` is used to filter for:
 - [1] at least 3 SNPs that are within a window of 35 bases ```-window 35 -cluster 3```
 - [2] fisher strand value FS>30
@@ -104,7 +104,7 @@ GATK ```-T VariantFiltration``` is used to filter for:
 ### [hrun]
 - [4] filter for variants within homopolymer runs >=5 ```[##FILTER=<ID=HRun,Description="HRun >= 5">]```
 
-### [indelprox] [not implemented yet]
+### [indel_prox] [not implemented yet]
 - [5] filter for SNVs located within 5 bases from an indel (Reumers et al., Nature Biotech., 2012)
 
 ### [annovar]
