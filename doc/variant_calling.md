@@ -34,7 +34,7 @@ optional arguments:
   --debug DEBUG         Debug level
   --stage STAGE         Limit job submission to a particular analysis stage.[a
                         ll,alignment,extract,replace_rg,duplicates,splitntrim,bqsr,
-                        bamfo,samtools,gatk,gatk_filter,hrun,annovar,inhouse]
+                        bamfo,samtools,gatk,gatk_filter,hrun,annovar,selection]
   --project_name PROJECT_NAME
                         name of the project
   --read1 READ1         For paired alignment, forward read.
@@ -80,8 +80,11 @@ Remove duplicate reads as described [here] (http://gatkforums.broadinstitute.org
 GATK tool ```-T SplitNCigarReads``` splits reads into exon segments and hard-clip sequences overhanging into the
 intronic regions. Additionally mapping qualities are reassigned.
 
+### [indel]
+Indel realignment (same as DNA). Recommended [known sites](https://www.broadinstitute.org/gatk/guide/article?id=1247).
+
 ### [bqsr]
-Not implemented yet.
+Base quality recalibration (same as DNA). Recommended [known sites](https://www.broadinstitute.org/gatk/guide/article?id=1247).
 
 ### [gatk]
 GATK tool ```-T HaplotypeCaller``` caller with options.
@@ -128,9 +131,9 @@ Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/e
 | popfreq_max_20150413   | A database containing all allele frequency from 1000G, ESP6500, ExAC and CG46 | 20150413 |
 | mitimpact2             |pathogenicity predictions of human mitochondrial missense variants | 20150520  |
 
-### [inhouse] [in progress...]
-Filter for:
-- FILTER: only keep 'PASS' annotation
+### [selection] [in progress...]
+Selection variants of interest:
+- FILTER: only keep 'PASS' annotation (remove all variants that did not pass filter criteria)
 - INFO: snp138Flagged with rs-number
 - INFO: 1000g2014oct_all with AF>0.1
 - INFO: ExonicFunc.ensGene = 'synonymous SNV'
