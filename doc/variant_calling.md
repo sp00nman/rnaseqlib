@@ -93,21 +93,23 @@ GATK tool ```-T HaplotypeCaller``` caller with options.
 ```
 Minimum phred-scaled confidence is lowered to 20 according to GATK best practices recommendation.
 
+## Variant Filtering Steps
+
 ### [gatk-filter]
 GATK ```-T VariantFiltration``` is used to filter for:
 - [1] at least 3 SNPs that are within a window of 35 bases ```-window 35 -cluster 3```
 - [2] fisher strand value FS>30
 - [3] Quality by Depth QD<2
 
-### [inhouse-filter]
+### [hrun]
 - [4] filter for variants within homopolymer runs >=5 ```[##FILTER=<ID=HRun,Description="HRun >= 5">]```
 
-### [inhouse-filter] [not implemented yet]
-- [5] remove sites from repetitive regions (according to RepeatMasker annotation)
-- [6] filter for SNVs located within 5 bases from and indel (Reumers et al., Nature Biotech., 2012)
+### [indelprox] [not implemented yet]
+- [5] filter for SNVs located within 5 bases from an indel (Reumers et al., Nature Biotech., 2012)
 
 ### [annovar]
-Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/en/latest/user-guide/download/) :
+Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/en/latest/user-guide/download/) and
+[inhouse] filtering steps:
 
 | NAME                   | DESCRIPTION                 | DATE   |
 | :--------------------- |:----------------------------|:-------|
@@ -119,13 +121,19 @@ Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/e
 | esp6500siv2_all        | alternative allele frequency in All subjects in the NHLBI-ESP project with 6500 exomes, including the indel calls and the chrY calls. This is lifted over from hg19 by myself. | 20141222 |
 | cosmic70              | COSMIC database version 70  | 20140224 |
 | clinvar_20150330       | CLINVAR database with Variant Clinical Significance (unknown, untested, non-pathogenic, probable-non-pathogenic, probable-pathogenic, pathogenic, drug-response, histocompatibility, other) and Variant disease name | 20150413 | 
-| genomicSuperDups       |  ?                           |    ?    |
+| genomicSuperDups       |  [Duplications of >1000 Bases of Non-RepeatMasked Sequence](http://genome.ucsc.edu/cgi-bin/hgTrackUi?hgsid=440807676_1iJIwAXN34xvNpvISAaGashad4iB&c=chr3&g=genomicSuperDups)  |     20110926    |
 | ljb26_all              | whole-exome SIFT, PolyPhen2 HDIV, PolyPhen2 HVAR, LRT, MutationTaster, MutationAssessor, FATHMM, MetaSVM, MetaLR, VEST, CADD, GERP++, PhyloP and SiPhy scores from dbNSFP version 2.6 | 20140925 |
 | caddgt10               |     ?                        |    ?    |
 | caddindel              |     ?                       |     ?   |
 | popfreq_max_20150413   | A database containing all allele frequency from 1000G, ESP6500, ExAC and CG46 | 20150413 |
 | mitimpact2             |pathogenicity predictions of human mitochondrial missense variants | 20150520  |
 
+### [inhouse] [in progress...]
+Filter for:
+- FILTER: only keep 'PASS' annotation
+- INFO: snp138Flagged with rs-number
+- INFO: 1000g2014oct_all with AF>0.1
+- INFO: ExonicFunc.ensGene = 'synonymous SNV'
 
 
 
