@@ -22,8 +22,8 @@ if __name__ == '__main__':
                         help='Limit job submission to a particular '
                              'analysis stage.'
                         '[all,alignment,star2pass,extract,duplicates,splitntrim,'
-                        'indel,bqsr,bamfo,samtools,gatk,filter,dbsnp_filt,'
-                        'annotation]')
+                        'indel,bqsr,bamfo,samtools,gatk,gatk_filter,hrun,'
+                        'annovar,selection]')
     parser.add_argument('--project_name', required=False, type=str,
                         help="name of the project")
     parser.add_argument('--read1', required=False, type=str,
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     # input files for indel realignment
     parser.add_argument('--known_indels', required=False, type=str,
-                        help="List of known indel sites")
+                        help="List of known indel sites. Comma separated.")
 
     # input files for base recalibration
     parser.add_argument('--dbsnp', required=False, type=str,
@@ -454,7 +454,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|variant_filtering", args.stage):
+    if re.search(r"all|gatk_filter", args.stage):
 
         #only gatk
         sample_file = project_dir + "/" \
@@ -555,7 +555,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|inhouse", args.stage):
+    if re.search(r"all|selection", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
@@ -563,95 +563,7 @@ if __name__ == '__main__':
 
         fv.filter_vcf(
             input_file=sample_file,
-            output_file=project_dir + "/" \
-                        + args.project_name + "." \
-                        + file_ext['inhouse']
+            file_prefix=project_dir + "/" \
+                        + args.project_name,
+            file_suffix=file_ext['inhouse']
         )
-
-    # if re.search(r"all|snpdb_filt", args.stage):
-    #
-    #     sample_file = project_dir + "/" \
-    #                 + args.project_name + "." \
-    #                 + file_ext['hrun']
-    #
-    #     cmd = rb.convert2annovar(
-    #         input_file=sample_file,
-    #         output_file=project_dir + "/"
-    #                     + args.project_name + "."
-    #                     + file_ext['annotation']
-    #     )
-    #
-    #     status = ts.run_cmd(
-    #         message=stdout_msg['annotation'],
-    #         command=cmd,
-    #         debug=args.debug
-    #     )
-    #
-    #     cmd = rb.dbsnp_filter(
-    #         dbtype="snp138NonFlagged",
-    #         buildversion="hg19",
-    #         input_file=project_dir + "/"
-    #                     + args.project_name + "."
-    #                     + file_ext['annotation'] + "."
-    #                     + "annovar",
-    #         annovar_dir=args.annovar
-    #     )
-    #
-    #     status = ts.run_cmd(
-    #         message=stdout_msg['dbsnp'],
-    #         command=cmd,
-    #         debug=args.debug
-    #     )
-    #
-    # if re.search(r"all|annotation", args.stage):
-    #
-    #     sample_file = project_dir + "/" \
-    #                   + args.project_name + "." \
-    #                   + file_ext['annotation'] + "." \
-    #                   + "annovar" + "." \
-    #                   + file_ext['dbsnp']
-    #
-    #
-    #     cmd = rb.gene_annotation(
-    #         buildversion="hg19",
-    #         input_file=sample_file,
-    #         annovar_dir=args.annovar
-    #     )
-    #
-    #     status = ts.run_cmd(
-    #         message=stdout_msg['geneanno'],
-    #         command=cmd,
-    #         debug=args.debug
-    #     )
-    #
-    #     pa.parse_variant(
-    #         input_file=project_dir + "/"
-    #                    + args.project_name + "."
-    #                    + file_ext['annotation'] + "."
-    #                    + "annovar" + "."
-    #                    + file_ext['dbsnp'] + "."
-    #                    + file_ext['variant'],
-    #         output_file=project_dir + "/"
-    #                     + args.project_name + "."
-    #                     + file_ext['annotation'] + "."
-    #                     + "annovar" + "."
-    #                     + file_ext['dbsnp'] + "."
-    #                     + file_ext['variant'] + "."
-    #                     + file_ext['keep']
-    #     )
-    #
-    #     pa.parse_exonic(
-    #         input_file=project_dir + "/"
-    #                    + args.project_name + "."
-    #                    + file_ext['annotation'] + "."
-    #                    + "annovar" + "."
-    #                    + file_ext['dbsnp'] + "."
-    #                    + file_ext['exonic'],
-    #         output_file=project_dir + "/"
-    #                     + args.project_name + "."
-    #                     + file_ext['annotation'] + "."
-    #                     + "annovar" + "."
-    #                     + file_ext['dbsnp'] + "."
-    #                     + file_ext['exonic'] + "."
-    #                     + file_ext['keep']
-    #     )
