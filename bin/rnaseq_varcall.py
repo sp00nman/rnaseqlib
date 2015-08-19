@@ -7,7 +7,13 @@ import logging
 
 from rnaseqlib.utils import tools as ts
 from rnaseqlib.utils import parse_annovar as pa
-from rnaseqlib.varcall import runnables as rb
+from rnaseqlib.varcall import samtools_runnables as samtools_rb
+from rnaseqlib.varcall import gatk_runnables as gatk_rb
+from rnaseqlib.varcall import picard_runnables as picard_rb
+from rnaseqlib.varcall import star_runnables as star_rb
+from rnaseqlib.varcall import annovar_runnables as annovar_rb
+from rnaseqlib.varcall import bedtools_runnables as bedtools_rb
+from rnaseqlib.varcall import bamfo_runnables as bamfo_rb
 from rnaseqlib.varcall import homopolymer_filter as hf
 from rnaseqlib.varcall import filter_vcf as fv
 
@@ -45,8 +51,11 @@ if __name__ == '__main__':
                         help="gtf file annotation")
 
     # input files for indel realignment
-    parser.add_argument('--known_indels', required=False, type=str,
-                        help="List of known indel sites. Comma separated.")
+    # for now at least 2 known indel files have to be provided
+    parser.add_argument('--known_indels_1000g', required=False, type=str,
+                        help="List of known indel sites [eg. 1000G_phase1.indels.b37.vcf]. ")
+    parser.add_argument('--known_indels_mills', required=False, type=str,
+                        help="List of known indel sites. [eg. Mills_and_1000G_gold_standard.indels.b37.vcf] ")
 
     # input files for base recalibration
     parser.add_argument('--dbsnp', required=False, type=str,
@@ -57,12 +66,17 @@ if __name__ == '__main__':
                         help="For region variant calling.")
     parser.add_argument('--region', required=False, type=str, default=False,
                         help="region eg. 20:30946147-31027122")
-    parser.add_argument('--num_cpus', dest='num_cpus', required=False,
-                        help='Number of cpus.')
 
     # annovar specific options
     parser.add_argument('--annovar', required=False, type=str,
                         help="Annotate variant with annovar.")
+
+    # hardware specific options
+    parser.add_argument('--num_cpus', dest='num_cpus', required=False,
+                        help='Number of cpus.')
+    parser.add_argument('--heap_mem', dest='heap_mem', required=False,
+                        help='Maximum heap size provided to Java. [Xmx[num]g]')
+
 
     # defaults
     args = parser.parse_args()
@@ -82,6 +96,10 @@ if __name__ == '__main__':
         args.annovar = home_dir + "/" + "src" + "/" + "annovar" + "/" + "humandb"
     if not args.num_cpus:
         args.num_cpus = "1"
+    if not args.heap_mem:
+        args.heap_mem = "Xmx6g"
+
+    #
 
     # set project directory
     project_dir = args.output_dir + "/" + args.project_name
@@ -112,7 +130,7 @@ if __name__ == '__main__':
     # start workflow
     if re.search(r"all|alignment", args.stage):
 
-        cmd = rb.rnaseq_align(
+        cmd = star_rb.rnaseq_align(
             star_genome=args.star_genome,
             gtf=args.gtf,
             read1=args.read1,
@@ -129,7 +147,7 @@ if __name__ == '__main__':
         )
 
     if re.search(r"all|star2pass", args.stage):
-        cmd = rb.star_index(
+        cmd = star_rb.star_index(
             novel_ref=project_dir + "/"
                       + "star_2pass",
             genome=args.ref_genome,
@@ -148,7 +166,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-        cmd = rb.rnaseq_align(
+        cmd = star_rb.rnaseq_align(
             star_genome=project_dir + "/"
                        + "star_2pass",
             gtf=args.gtf,
@@ -175,7 +193,7 @@ if __name__ == '__main__':
         else:
             sample_file = args.sample_file
 
-        cmd = rb.extract(
+        cmd = samtools_rb.extract(
             input_file=sample_file,
             region=args.region,
             output_file=project_dir + "/"
@@ -204,7 +222,7 @@ if __name__ == '__main__':
                               + args.project_name + "." \
                               + file_ext['star_alignment']
 
-        cmd = rb.reorder_sam(
+        cmd = picard_rb.reorder_sam(
             inbamfile=sample_file,
             outbamfile=project_dir + "/"
                         + args.project_name + "."
@@ -222,12 +240,13 @@ if __name__ == '__main__':
                     + args.project_name + "." \
                     + file_ext['reorder']
 
-        cmd = rb.sort_bam(
+        cmd = picard_rb.sort_bam(
             inbamfile=sample_file,
             outbamfile=project_dir + "/"
                         + args.project_name + "." \
                         + file_ext['sort'],
-            sort_order="coordinate")
+            sort_order="coordinate",
+            heap_mem=args.heap_mem)
 
         status = ts.run_cmd(
             message=stdout_msg['sort'],
@@ -251,12 +270,13 @@ if __name__ == '__main__':
                         + args.project_name + "." \
                         + file_ext['sort']
 
-        cmd = rb.replace_readgroups(
+        cmd = picard_rb.replace_readgroups(
             input_file=sample_file,
             output_file=project_dir + "/"
                         + args.project_name + "."
                         + file_ext['replace_rg'],
-            project_name=args.project_name)
+            project_name=args.project_name,
+            heap_mem=args.heap_mem)
 
         status = ts.run_cmd(
             message=stdout_msg['replace_rg'],
@@ -270,12 +290,13 @@ if __name__ == '__main__':
                         + args.project_name + "." \
                         + file_ext['replace_rg']
 
-        cmd = rb.remove_duplicates(
+        cmd = picard_rb.remove_duplicates(
             inbamfile=sample_file,
             outbamfile=project_dir + "/"
                         + args.project_name + "."
                         + file_ext['duplicates'],
-            metrics_file=".duplicate_metrics.txt")
+            metrics_file=".duplicate_metrics.txt",
+            heap_mem=args.heap_mem)
 
         status = ts.run_cmd(
             message=stdout_msg['duplicates'],
@@ -289,7 +310,7 @@ if __name__ == '__main__':
                         + args.project_name + "." \
                         + file_ext['duplicates']
 
-        cmd = rb.index_bam(
+        cmd = samtools_rb.index_bam(
             inbamfile=sample_file)
 
         status = ts.run_cmd(
@@ -304,12 +325,13 @@ if __name__ == '__main__':
                         + args.project_name + "." \
                         + file_ext['duplicates']
 
-        cmd = rb.splitntrim(
+        cmd = gatk_rb.splitntrim(
             input_file=sample_file,
             output_file=project_dir + "/"
                         + args.project_name + "."
                         + file_ext['splitntrim'],
-            ref_genome=args.ref_genome)
+            ref_genome=args.ref_genome,
+            heap_mem=args.heap_mem)
 
         status = ts.run_cmd(
             message=stdout_msg['splitntrim'],
@@ -323,13 +345,16 @@ if __name__ == '__main__':
                         + args.project_name + "." \
                         + file_ext['splitntrim']
 
-        cmd = rb.target_creator(
+        cmd = gatk_rb.target_creator(
             input_file=sample_file,
             output_file=project_dir + "/"
                         + args.project_name + "."
                         + file_ext['target'],
             ref_genome=args.ref_genome,
-            known=args.known_indels
+            known_1000g=args.known_indels_1000g,
+            known_mills=args.known_indels_mills,
+            heap_mem=args.heap_mem
+
         )
 
         status = ts.run_cmd(
@@ -338,16 +363,18 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-        cmd = rb.indel_realignment(
+        cmd = gatk_rb.indel_realignment(
             input_file=sample_file,
             output_file=project_dir + "/"
                         + args.project_name + "."
                         + file_ext['indel'],
             ref_genome=args.ref_genome,
-            known=args.known_indels,
             target=project_dir + "/"
                    + args.project_name + "."
-                   + file_ext['target']
+                   + file_ext['target'],
+            known_1000g=args.known_indels_1000g,
+            known_mills=args.known_indels_mills,
+            heap_mem=args.heap_mem
         )
 
         status =ts.run_cmd(
@@ -362,14 +389,16 @@ if __name__ == '__main__':
                         + args.project_name + "." \
                         + file_ext['indel']
 
-        cmd = rb.bqsrI(
+        cmd = gatk_rb.analyse_covariation_patterns(
             input_file=sample_file,
             output_file=project_dir + "/"
                         + args.project_name + "."
                         + file_ext['bqsrI'],
             ref_genome=args.ref_genome,
-            known=args.known_indels,
-            dbsnp=args.dbsnp
+            known_1000g=args.known_indels_1000g,
+            known_mills=args.known_indels_mills,
+            dbsnp=args.dbsnp,
+            heap_mem=args.heap_mem
         )
 
         status = ts.run_cmd(
@@ -378,17 +407,59 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-        #TODO: implement plot recalibration steps
-
-        cmd = rb.bqsr(
+        cmd = gatk_rb.analyse_covariation_patterns_2ndpass(
             input_file=sample_file,
             output_file=project_dir + "/"
                         + args.project_name + "."
-                        + file_ext['bqsr'],
+                        + file_ext['bqsrII'],
             ref_genome=args.ref_genome,
+            known_1000g=args.known_indels_1000g,
+            known_mills=args.known_indels_mills,
+            dbsnp=args.dbsnp,
+            heap_mem=args.heap_mem,
+            recal=project_dir + "/"
+                  + args.project_name + "."
+                  + file_ext['bqsrI']
+        )
+
+        status = ts.run_cmd(
+            message=stdout_msg['bqsrII'],
+            command=cmd,
+            debug=args.debug
+        )
+
+        cmd = gatk_rb.plot_recalibration(
+            ref_genome=args.ref_genome,
+            before=project_dir + "/"
+                   + args.project_name + "."
+                   + file_ext['bqsrI'],
+            after=project_dir + "/"
+                  + args.project_name + "."
+                  + file_ext['bqsrII'],
+            plot_name=project_dir + "/"
+                     + args.project_name + "."
+                     + file_ext['recal_plot'],
+            heap_mem=args.heap_mem
+        )
+
+        status = ts.run_cmd(
+            message=stdout_msg['plot_recal'],
+            command=cmd,
+            debug=args.debug
+        )
+
+        cmd = gatk_rb.bqsr(
+            ref_genome=args.ref_genome,
+            input_file=project_dir + "/" \
+                       + args.project_name + "." \
+                       + file_ext['indel'],
             bqsr=project_dir + "/"
-                + args.project_name + "."
-                + file_ext['bqsrI']
+                 + args.project_name + "."
+                 + file_ext['bqsrI'],
+            output_file=project_dir + "/" \
+                        + args.project_name + "." \
+                        + file_ext['bqsr'],
+            heap_mem=args.heap_mem
         )
 
         status = ts.run_cmd(
@@ -403,12 +474,13 @@ if __name__ == '__main__':
                     + args.project_name + "." \
                     + file_ext['bqsr']
 
-        cmd = rb.varcall_bamfo(
+        cmd = bamfo_rb.varcall_bamfo(
             input_file=sample_file,
             output_file_gatk=project_dir + "/"
                             + args.project_name + "."
                             + file_ext['bamfo'],
-            ref_genome=args.ref_genome)
+            ref_genome=args.ref_genome
+        )
 
         status = ts.run_cmd(
             message=stdout_msg['bamfo'],
@@ -422,7 +494,7 @@ if __name__ == '__main__':
                     + args.project_name + "." \
                     + file_ext['bqsr']
 
-        cmd = rb.varcall_samtools(
+        cmd = samtools_rb.varcall_samtools(
             input_file=sample_file,
             output_file=project_dir + "/"
                         + args.project_name + "."
@@ -441,12 +513,14 @@ if __name__ == '__main__':
                     + args.project_name + "." \
                     + file_ext['bqsr']
 
-        cmd = rb.varcall_gatk(
+        cmd = gatk_rb.varcall_gatk(
             input_file=sample_file,
             output_file_gatk=project_dir + "/"
                             + args.project_name + "."
                             + file_ext['gatk'],
-            ref_genome=args.ref_genome)
+            ref_genome=args.ref_genome,
+            heap_mem=args.heap_mem
+        )
 
         status = ts.run_cmd(
             message=stdout_msg['gatk'],
@@ -461,12 +535,14 @@ if __name__ == '__main__':
                     + args.project_name + "." \
                     + file_ext['gatk']
 
-        cmd = rb.variant_filtering(
+        cmd = gatk_rb.variant_filtering(
             input_file=sample_file,
             output_file=project_dir + "/"
                         + args.project_name + "."
                         + file_ext['filtering'],
-            ref_genome=args.ref_genome)
+            ref_genome=args.ref_genome,
+            heap_mem=args.heap_mem
+        )
 
         status = ts.run_cmd(
             message=stdout_msg['filtering'],
@@ -490,7 +566,7 @@ if __name__ == '__main__':
         )
 
         # get coordinates from vcf file
-        cmd = rb.bedtools_getfasta(
+        cmd = bedtools_rb.getfasta(
             bedfile=project_dir + "/"
                     + args.project_name + "."
                     + file_ext['coordinates'],
@@ -524,7 +600,7 @@ if __name__ == '__main__':
                      + args.project_name + "." \
                      + file_ext['hrun']
 
-        cmd = rb.run_annovar(
+        cmd = annovar_rb.run_annovar(
             vcf_file=sample_file,
             protocol="ensGene,"
                      + "cytoBand,"

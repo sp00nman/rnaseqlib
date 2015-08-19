@@ -11,7 +11,9 @@ index:              Index BAM file
 splitntrim:         Splitntrim
 target:             Create target list of intervals to be realigned.
 indel:              Perform realignment of the target intervals.
-bqsrI:              Analyze patterns of covariation in the sequence data.(bqsrI)
+bqsrI:              Analyze patterns of covariation in the sequence data.
+bqsrII:             Second pass to analyze covariation remaining after recalibration.
+plot_recal:         Generate before & after plots
 bqsr:               BQSR variant recalibration
 bamfo:              Variant calling with bamfo.
 samtools:           Variant calling with samtools.

@@ -13,6 +13,8 @@ splitntrim:         splitntrim.bam
 target:             realignment_targets.list
 indel:              realigned_reads.bam
 bqsrI:              recal_data.table
+bqsrII:             post_recal_data.table
+recal_plot:         recalibration_plots.pdf
 bqsr:               recal_reads.bam
 bamfo:              varcall_bamfo.vcf
 samtools:           varcall_samtools.vcf
