@@ -76,6 +76,9 @@ Adds readgroup information and sorts by coordinate as described [here] (http://g
 ### [duplicates]
 Remove duplicate reads as described [here] (http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq)
 
+### [index]
+Index BAM file with samtools.
+
 ### [splitntrim]
 GATK tool ```-T SplitNCigarReads``` splits reads into exon segments and hard-clip sequences overhanging into the
 intronic regions. Additionally mapping qualities are reassigned.
