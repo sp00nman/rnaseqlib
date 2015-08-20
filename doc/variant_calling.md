@@ -14,6 +14,11 @@ Workflow is well described [here] (http://gatkforums.broadinstitute.org/discussi
 + [PyVCF]()
 + [pandas](https://github.com/pydata/pandas)
 
+##### Environment variables
++ $TMPDIR (path to temporary directory)  
++ $NGS_GATK (path to gatk executables) 
++ $NGS_PICARD (path to picard executables)
+
 ## Usage
 
 ```bash
