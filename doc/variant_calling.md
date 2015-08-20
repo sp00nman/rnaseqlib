@@ -68,7 +68,9 @@ Alignment with STAR and the following additional options set:
 --outSAMtype BAM SortedByCoordinate
 
 ```
-If ```--star2pass``` is set then a new index is created using splice junction information contained in the file SJ.out.tab from the first pass.
+
+### [star2pass]
+If ```star2pass``` is set then a new index is created using splice junction information contained in the file SJ.out.tab from the first pass.
 
 ### [replace_rg]
 Adds readgroup information and sorts by coordinate as described [here] (http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq)
