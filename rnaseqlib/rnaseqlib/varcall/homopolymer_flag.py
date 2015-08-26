@@ -1,5 +1,5 @@
 """
-Filter for variants that fall within homopolymer sites (HRun) or
+Flag variants that fall within homopolymer sites (HRun) or
 near homopolymer sites (nHRun).
 """
 
@@ -101,8 +101,8 @@ def annotate_variants(coord_seq,
             vcf_writer.write_record(record)
 
     finally:
-            in_handle.close()
-            out_handle.close()
+        in_handle.close()
+        out_handle.close()
 
 
 def match_homopolymer(seq_homopolymer,

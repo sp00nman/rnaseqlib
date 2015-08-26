@@ -14,7 +14,8 @@ from rnaseqlib.varcall import star_runnables as star_rb
 from rnaseqlib.varcall import annovar_runnables as annovar_rb
 from rnaseqlib.varcall import bedtools_runnables as bedtools_rb
 from rnaseqlib.varcall import bamfo_runnables as bamfo_rb
-from rnaseqlib.varcall import homopolymer_filter as hf
+from rnaseqlib.varcall import homopolymer_flag as hf
+from rnaseqlib.varcall import near_indel_flag as nif
 from rnaseqlib.varcall import filter_vcf as fv
 
 
@@ -27,9 +28,9 @@ if __name__ == '__main__':
     parser.add_argument('--stage', dest='stage', required=False,
                         help='Limit job submission to a particular '
                              'analysis stage.'
-                        '[all,alignment,star2pass,extract,duplicates,splitntrim,'
-                        'indel,bqsr,bamfo,samtools,gatk,gatk_filter,hrun,'
-                        'annovar,selection]')
+                        '[all,alignment,star2pass,extract,duplicates,index,'
+                        'splitntrim,indel,bqsr,bamfo,samtools,gatk,gatk_flag,'
+                        'hrun_flag,nind_flag,annovar,selection]')
     parser.add_argument('--project_name', required=False, type=str,
                         help="name of the project")
     parser.add_argument('--read1', required=False, type=str,
@@ -118,7 +119,7 @@ if __name__ == '__main__':
                         level=logging.DEBUG)
 
     # start analysis workflow & logging
-    logging.info("RNAseq variant calling (region specific)")
+    logging.info("Initiated RNA-seq variant calling workflow.")
 
     # load dictionary for file extensions
     data_dir = str(os.path.dirname(os.path.realpath(__file__)).strip('bin')) \
@@ -528,7 +529,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|gatk_filter", args.stage):
+    if re.search(r"all|gatk_flag", args.stage):
 
         #only gatk
         sample_file = project_dir + "/" \
@@ -550,7 +551,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|hrun", args.stage):
+    if re.search(r"all|hrun_flag", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
@@ -594,33 +595,50 @@ if __name__ == '__main__':
             dis=1
         )
 
+    if re.search(r"all|nind_flag", args.stage):
+        # near indel, indel matches with nindel_flag -->so stupid
+
+        sample_file = project_dir + "/" \
+                    + args.project_name + "." \
+                    + file_ext['hrun']
+
+        nif.flag_variants(
+            input_file=sample_file,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['nindel'],
+            dis=5
+        )
+
     if re.search(r"all|annovar", args.stage):
 
         sample_file = project_dir + "/" \
                      + args.project_name + "." \
-                     + file_ext['hrun']
+                     + file_ext['nindel']
 
         cmd = annovar_rb.run_annovar(
             vcf_file=sample_file,
             protocol="ensGene,"
                      + "cytoBand,"
-                     + "phastConsElements46way,"
                      + "genomicSuperDups,"
-                     + "avsnp142,"
-                     + "snp138NonFlagged,"
+                     + "snp129,"
+                     + "snp142Common,"
                      + "1000g2014oct_all,"
+                     + "1000g2014oct_afr,"
+                     + "1000g2014oct_amr,"
+                     + "1000g2014oct_eas,"
+                     + "1000g2014oct_eur,"
+                     + "1000g2014oct_sas,"
                      + "esp6500siv2_all,"
                      + "cosmic70,"
                      + "clinvar_20150330,"
                      + "ljb26_all,"
                      + "caddgt10,"
-                     + "caddindel,"
-                     + "popfreq_max_20150413,"
-                     + "mitimpact2",
+                     + "caddindel",
             output_file=project_dir + "/"
                         + args.project_name + "."
                         + file_ext['annotation'],
-            operation="g,r,r,r,f,f,f,f,f,f,f,f,f,f,f",
+            operation="g,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f",
             buildversion="hg19",
             annovar_dir=args.annovar
         )
