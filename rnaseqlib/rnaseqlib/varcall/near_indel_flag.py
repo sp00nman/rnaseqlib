@@ -54,19 +54,18 @@ def flag_variants(input_file,
                             store_records[0].is_indel:
                         record.FILTER.append('nIndel')
 
-            elif 0 > counter < count_entries:
+            elif counter > 1 and counter < count_entries:
                 # process everything else
                 store_records[1] = vcf_walker.next()
-                if record.is_snp:
-                    if record.CHROM == store_records[0].CHROM and \
-                            store_records[0].is_indel and \
-                            (record.POS - store_records[0].POS) <= dis or \
-                            record.CHROM == store_records[1].CHROM and \
-                            store_records[1].is_indel and \
-                            (store_records[1].POS - record.POS) <= dis:
-                         record.FILTER.append('nIndel')
-                store_records[0] = record
 
+                if (record.is_snp and store_records[0].is_indel and
+                            record.CHROM == store_records[0].CHROM and
+                            (record.POS - store_records[0].POS) <= dis) or \
+                                (record.is_snp and store_records[1].is_indel
+                                 and record.CHROM == store_records[1].CHROM and
+                                         (store_records[1].POS - record.POS) <= dis):
+                    record.FILTER.append('nIndel')
+                store_records[0] = record
             vcf_writer.write_record(record)
 
     finally:
