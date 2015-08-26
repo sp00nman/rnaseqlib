@@ -106,19 +106,26 @@ GATK tool ```-T HaplotypeCaller``` caller with options.
 ```
 Minimum phred-scaled confidence is lowered to 20 according to GATK best practices recommendation.
 
-## Variant Filtering Steps
+## Variant Annotation & Filtering Steps
 
-### [gatk_filter]
-GATK ```-T VariantFiltration``` is used to filter for:
+### [gatk_flag]
+GATK ```-T VariantFiltration``` is used to flag the following variants:
 - [1] at least 3 SNPs that are within a window of 35 bases ```-window 35 -cluster 3```
+ + ```##FILTER=<ID=SnpCluster,Description="SNPs found in clusters">```
 - [2] fisher strand value FS>30
+ + ```##FILTER=<ID=FS,Description="FS > 30.0">```
 - [3] Quality by Depth QD<2
+ + ```##FILTER=<ID=QD,Description="QD < 2.0">```
 
-### [hrun]
-- [4] filter for variants within homopolymer runs >=5 ```[##FILTER=<ID=HRun,Description="HRun >= 5">]```
 
-### [indel_prox] [not implemented yet]
-- [5] filter for SNVs located within 5 bases from an indel (Reumers et al., Nature Biotech., 2012)
+### [hrun_flag]
+- [4] flag variants within homopolymer runs >=5
+ + ```[##FILTER=<ID=HRun,Description="HRun >= 5">]```
+- [5] flag variants within 1bp away from a homopolymer runs >=5; nHrun (near homopolymer run)
+ + ```[##FILTER=<ID=nHRun,Description="nHRun >= 5">]```
+
+### [indel_prox_flag] [not implemented yet]
+- [6] flag SNVs located within 5 bases from an indel (Reumers et al., Nature Biotech., 2012)
 
 ### [annovar]
 Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/en/latest/user-guide/download/) and
