@@ -39,7 +39,7 @@ optional arguments:
   --debug DEBUG         Debug level
   --stage STAGE         Limit job submission to a particular analysis stage.[a
                         ll,alignment,extract,replace_rg,duplicates,splitntrim,bqsr,
-                        bamfo,samtools,gatk,gatk_filter,hrun,annovar,selection]
+                        bamfo,samtools,gatk,gatk_flag,hrun_flag,nind_flag,annovar,selection]
   --project_name PROJECT_NAME
                         name of the project
   --read1 READ1         For paired alignment, forward read.
@@ -124,8 +124,9 @@ GATK ```-T VariantFiltration``` is used to flag the following variants:
 - [5] flag variants within 1bp away from a homopolymer runs >=5; nHrun (near homopolymer run)
  + ```[##FILTER=<ID=nHRun,Description="nHRun >= 5">]```
 
-### [indel_prox_flag] [not implemented yet]
+### [nind_flag] 
 - [6] flag SNVs located within 5 bases from an indel (Reumers et al., Nature Biotech., 2012)
+ + ```[##FILTER=<ID=nIndel,Description="nIndel <= 5">]```
 
 ### [annovar]
 Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/en/latest/user-guide/download/) and
