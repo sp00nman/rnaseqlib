@@ -14,6 +14,11 @@ Workflow is well described [here] (http://gatkforums.broadinstitute.org/discussi
 + [PyVCF]()
 + [pandas](https://github.com/pydata/pandas)
 
+##### Environment variables
++ ```$TMPDIR``` (path to temporary directory)  
++ ```$NGS_GATK``` (path to gatk executables) 
++ ```$NGS_PICARD``` (path to picard executables)
+
 ## Usage
 
 ```bash
@@ -68,13 +73,18 @@ Alignment with STAR and the following additional options set:
 --outSAMtype BAM SortedByCoordinate
 
 ```
-If ```--star2pass``` is set then a new index is created using splice junction information contained in the file SJ.out.tab from the first pass.
+
+### [star2pass]
+If ```star2pass``` is set then a new index is created using splice junction information contained in the file SJ.out.tab from the first pass.
 
 ### [replace_rg]
 Adds readgroup information and sorts by coordinate as described [here] (http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq)
 
 ### [duplicates]
 Remove duplicate reads as described [here] (http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq)
+
+### [index]
+Index BAM file with samtools.
 
 ### [splitntrim]
 GATK tool ```-T SplitNCigarReads``` splits reads into exon segments and hard-clip sequences overhanging into the
@@ -96,19 +106,26 @@ GATK tool ```-T HaplotypeCaller``` caller with options.
 ```
 Minimum phred-scaled confidence is lowered to 20 according to GATK best practices recommendation.
 
-## Variant Filtering Steps
+## Variant Annotation & Filtering Steps
 
-### [gatk_filter]
-GATK ```-T VariantFiltration``` is used to filter for:
+### [gatk_flag]
+GATK ```-T VariantFiltration``` is used to flag the following variants:
 - [1] at least 3 SNPs that are within a window of 35 bases ```-window 35 -cluster 3```
+ + ```##FILTER=<ID=SnpCluster,Description="SNPs found in clusters">```
 - [2] fisher strand value FS>30
+ + ```##FILTER=<ID=FS,Description="FS > 30.0">```
 - [3] Quality by Depth QD<2
+ + ```##FILTER=<ID=QD,Description="QD < 2.0">```
 
-### [hrun]
-- [4] filter for variants within homopolymer runs >=5 ```[##FILTER=<ID=HRun,Description="HRun >= 5">]```
 
-### [indel_prox] [not implemented yet]
-- [5] filter for SNVs located within 5 bases from an indel (Reumers et al., Nature Biotech., 2012)
+### [hrun_flag]
+- [4] flag variants within homopolymer runs >=5
+ + ```[##FILTER=<ID=HRun,Description="HRun >= 5">]```
+- [5] flag variants within 1bp away from a homopolymer runs >=5; nHrun (near homopolymer run)
+ + ```[##FILTER=<ID=nHRun,Description="nHRun >= 5">]```
+
+### [indel_prox_flag] [not implemented yet]
+- [6] flag SNVs located within 5 bases from an indel (Reumers et al., Nature Biotech., 2012)
 
 ### [annovar]
 Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/en/latest/user-guide/download/) and
@@ -117,25 +134,30 @@ Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/e
 | NAME                   | DESCRIPTION                 | DATE   |
 | :--------------------- |:----------------------------|:-------|
 | cytoBand               | cytoBand annotation             |   ?     |
-| phastConsElements46way | ?         |     ?   |
-| avsnp142               | dbSNP142 with allelic splitting and left-normalization	| 20141228 |
-| snp138NonFlagged       | dbSNP with ANNOVAR index files, after removing those flagged SNPs (SNPs < 1% minor allele frequency (MAF) (or unknown), mapping only once to reference assembly, flagged in dbSnp as "clinically associated") | 20140222 |
-| 1000g2014oct_all       | alternative allele frequency data in 1000 Genomes Project for autosomes | 20141216 |
-| esp6500siv2_all        | alternative allele frequency in All subjects in the NHLBI-ESP project with 6500 exomes, including the indel calls and the chrY calls. This is lifted over from hg19 by myself. | 20141222 |
+| genomicSuperDups  |  [Duplications of >1000 Bases of Non-RepeatMasked Sequence](http://genome.ucsc.edu/cgi-bin/hgTrackUi?hgsid=440807676_1iJIwAXN34xvNpvISAaGashad4iB&c=chr3&g=genomicSuperDups)  |     20110926    |
+| snp142Mult              | ?	| ? |
+| snp129          | dbSNP129 with dbSNP with ANNOVAR index files | 20120809 |
+| snp142Common    | dbSNP142 only with common SNPs, MAF>0.1; downloaded from ucsc without dbSNP with ANNOVAR index files; index is produced on the fly| 20150822 |
+| 1000g2015feb_all       | alternative allele frequency data in 1000 Genomes Project for autosomes. | 201502?? |
+| 1000g2015feb_afr       | same as 1000g2015feb_all for AFR (African) [691 total] | 201502?? |
+| 1000g2015feb_amr       | same as 1000g2015feb_all for AMR (Admixed American) [355 total] | 201502?? |
+| 1000g2015feb_eas       | same as 1000g2015feb_all for EAS (East Asian) [523 total]  | 201502?? |
+| 1000g2015feb_eur       | same as 1000g2015feb_all for EUR (European) [514 total] | 201502?? |
+| 1000g2015feb_sas       | same as 1000g2015feb_all for SAS (South Asian) [494 total] | 201502?? |
+| esp5400siv2_all        | [Exome Variant Server] alternative allele frequency in All subjects in the NHLBI-ESP project with 5400 exomes. This is lifted over from hg19. (Includes sequencing errors.) | ?????? |
+| esp6500siv2_all        | [Exome Variant Server] alternative allele frequency in All subjects in the NHLBI-ESP project with 6500 exomes (2203 African-Americans and 4300 European-Americans unrelated individuals), including the indel calls and the chrY calls. This is lifted over from hg19. | 20141222 |
 | cosmic70              | COSMIC database version 70  | 20140224 |
 | clinvar_20150330       | CLINVAR database with Variant Clinical Significance (unknown, untested, non-pathogenic, probable-non-pathogenic, probable-pathogenic, pathogenic, drug-response, histocompatibility, other) and Variant disease name | 20150413 | 
-| genomicSuperDups       |  [Duplications of >1000 Bases of Non-RepeatMasked Sequence](http://genome.ucsc.edu/cgi-bin/hgTrackUi?hgsid=440807676_1iJIwAXN34xvNpvISAaGashad4iB&c=chr3&g=genomicSuperDups)  |     20110926    |
 | ljb26_all              | whole-exome SIFT, PolyPhen2 HDIV, PolyPhen2 HVAR, LRT, MutationTaster, MutationAssessor, FATHMM, MetaSVM, MetaLR, VEST, CADD, GERP++, PhyloP and SiPhy scores from dbNSFP version 2.6 | 20140925 |
-| caddgt10               |     ?                        |    ?    |
-| caddindel              |     ?                       |     ?   |
-| popfreq_max_20150413   | A database containing all allele frequency from 1000G, ESP6500, ExAC and CG46 | 20150413 |
-| mitimpact2             |pathogenicity predictions of human mitochondrial missense variants | 20150520  |
+| caddgt10               |     ?                        |    ??????    |
+| caddindel              |     ?                       |     ??????   |
 
 ### [selection] [in progress...]
 Selection variants of interest:
 - FILTER: only keep 'PASS' annotation (remove all variants that did not pass filter criteria)
-- INFO: snp138Flagged with rs-number
-- INFO: 1000g2014oct_all with AF>0.1
+- INFO: snp142Common with rs-number
+- INFO: 1000g2014oct_all with MAF>0.1
+- INFO: esp5400siv2_all with MAF>0.1
 - INFO: ExonicFunc.ensGene = 'synonymous SNV'
 
 
