@@ -127,25 +127,30 @@ Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/e
 | NAME                   | DESCRIPTION                 | DATE   |
 | :--------------------- |:----------------------------|:-------|
 | cytoBand               | cytoBand annotation             |   ?     |
-| phastConsElements46way | ?         |     ?   |
-| avsnp142               | dbSNP142 with allelic splitting and left-normalization	| 20141228 |
-| snp138NonFlagged       | dbSNP with ANNOVAR index files, after removing those flagged SNPs (SNPs < 1% minor allele frequency (MAF) (or unknown), mapping only once to reference assembly, flagged in dbSnp as "clinically associated") | 20140222 |
-| 1000g2014oct_all       | alternative allele frequency data in 1000 Genomes Project for autosomes | 20141216 |
-| esp6500siv2_all        | alternative allele frequency in All subjects in the NHLBI-ESP project with 6500 exomes, including the indel calls and the chrY calls. This is lifted over from hg19 by myself. | 20141222 |
+| genomicSuperDups  |  [Duplications of >1000 Bases of Non-RepeatMasked Sequence](http://genome.ucsc.edu/cgi-bin/hgTrackUi?hgsid=440807676_1iJIwAXN34xvNpvISAaGashad4iB&c=chr3&g=genomicSuperDups)  |     20110926    |
+| snp142Mult              | ?	| ? |
+| snp129          | dbSNP129 with dbSNP with ANNOVAR index files | 20120809 |
+| snp142Common    | dbSNP142 only with common SNPs, MAF>0.1; downloaded from ucsc without dbSNP with ANNOVAR index files; index is produced on the fly| 20150822 |
+| 1000g2015feb_all       | alternative allele frequency data in 1000 Genomes Project for autosomes. | 201502?? |
+| 1000g2015feb_afr       | same as 1000g2015feb_all for AFR (African) [691 total] | 201502?? |
+| 1000g2015feb_amr       | same as 1000g2015feb_all for AMR (Admixed American) [355 total] | 201502?? |
+| 1000g2015feb_eas       | same as 1000g2015feb_all for EAS (East Asian) [523 total]  | 201502?? |
+| 1000g2015feb_eur       | same as 1000g2015feb_all for EUR (European) [514 total] | 201502?? |
+| 1000g2015feb_sas       | same as 1000g2015feb_all for SAS (South Asian) [494 total] | 201502?? |
+| esp5400siv2_all        | [Exome Variant Server] alternative allele frequency in All subjects in the NHLBI-ESP project with 5400 exomes. This is lifted over from hg19. (Includes sequencing errors.) | ?????? |
+| esp6500siv2_all        | [Exome Variant Server] alternative allele frequency in All subjects in the NHLBI-ESP project with 6500 exomes (2203 African-Americans and 4300 European-Americans unrelated individuals), including the indel calls and the chrY calls. This is lifted over from hg19. | 20141222 |
 | cosmic70              | COSMIC database version 70  | 20140224 |
 | clinvar_20150330       | CLINVAR database with Variant Clinical Significance (unknown, untested, non-pathogenic, probable-non-pathogenic, probable-pathogenic, pathogenic, drug-response, histocompatibility, other) and Variant disease name | 20150413 | 
-| genomicSuperDups       |  [Duplications of >1000 Bases of Non-RepeatMasked Sequence](http://genome.ucsc.edu/cgi-bin/hgTrackUi?hgsid=440807676_1iJIwAXN34xvNpvISAaGashad4iB&c=chr3&g=genomicSuperDups)  |     20110926    |
 | ljb26_all              | whole-exome SIFT, PolyPhen2 HDIV, PolyPhen2 HVAR, LRT, MutationTaster, MutationAssessor, FATHMM, MetaSVM, MetaLR, VEST, CADD, GERP++, PhyloP and SiPhy scores from dbNSFP version 2.6 | 20140925 |
-| caddgt10               |     ?                        |    ?    |
-| caddindel              |     ?                       |     ?   |
-| popfreq_max_20150413   | A database containing all allele frequency from 1000G, ESP6500, ExAC and CG46 | 20150413 |
-| mitimpact2             |pathogenicity predictions of human mitochondrial missense variants | 20150520  |
+| caddgt10               |     ?                        |    ??????    |
+| caddindel              |     ?                       |     ??????   |
 
 ### [selection] [in progress...]
 Selection variants of interest:
 - FILTER: only keep 'PASS' annotation (remove all variants that did not pass filter criteria)
-- INFO: snp138Flagged with rs-number
-- INFO: 1000g2014oct_all with AF>0.1
+- INFO: snp142Common with rs-number
+- INFO: 1000g2014oct_all with MAF>0.1
+- INFO: esp5400siv2_all with MAF>0.1
 - INFO: ExonicFunc.ensGene = 'synonymous SNV'
 
 
