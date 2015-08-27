@@ -145,7 +145,7 @@ Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/e
 | 1000g2015feb_eas       | same as 1000g2015feb_all for EAS (East Asian) [523 total]  | 201502?? |
 | 1000g2015feb_eur       | same as 1000g2015feb_all for EUR (European) [514 total] | 201502?? |
 | 1000g2015feb_sas       | same as 1000g2015feb_all for SAS (South Asian) [494 total] | 201502?? |
-| esp5400siv2_all        | [Exome Variant Server] alternative allele frequency in All subjects in the NHLBI-ESP project with 5400 exomes. This is lifted over from hg19. (Includes sequencing errors.) | ?????? |
+| esp5400_all        | [Exome Variant Server] alternative allele frequency in All subjects in the NHLBI-ESP project with 5400 exomes. This is lifted over from hg19. (Includes sequencing errors.) | ?????? |
 | esp6500siv2_all        | [Exome Variant Server] alternative allele frequency in All subjects in the NHLBI-ESP project with 6500 exomes (2203 African-Americans and 4300 European-Americans unrelated individuals), including the indel calls and the chrY calls. This is lifted over from hg19. | 20141222 |
 | cosmic70              | COSMIC database version 70  | 20140224 |
 | clinvar_20150330       | CLINVAR database with Variant Clinical Significance (unknown, untested, non-pathogenic, probable-non-pathogenic, probable-pathogenic, pathogenic, drug-response, histocompatibility, other) and Variant disease name | 20150413 | 
