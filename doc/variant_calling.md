@@ -39,7 +39,7 @@ optional arguments:
   --debug DEBUG         Debug level
   --stage STAGE         Limit job submission to a particular analysis stage.[a
                         ll,alignment,extract,replace_rg,duplicates,splitntrim,bqsr,
-                        bamfo,samtools,gatk,gatk_filter,hrun,annovar,selection]
+                        bamfo,samtools,gatk,gatk_flag,hrun_flag,nind_flag,annovar,selection]
   --project_name PROJECT_NAME
                         name of the project
   --read1 READ1         For paired alignment, forward read.
@@ -124,8 +124,9 @@ GATK ```-T VariantFiltration``` is used to flag the following variants:
 - [5] flag variants within 1bp away from a homopolymer runs >=5; nHrun (near homopolymer run)
  + ```[##FILTER=<ID=nHRun,Description="nHRun >= 5">]```
 
-### [indel_prox_flag] [not implemented yet]
+### [nind_flag] 
 - [6] flag SNVs located within 5 bases from an indel (Reumers et al., Nature Biotech., 2012)
+ + ```[##FILTER=<ID=nIndel,Description="nIndel <= 5">]```
 
 ### [annovar]
 Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/en/latest/user-guide/download/) and
@@ -144,7 +145,7 @@ Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/e
 | 1000g2015feb_eas       | same as 1000g2015feb_all for EAS (East Asian) [523 total]  | 201502?? |
 | 1000g2015feb_eur       | same as 1000g2015feb_all for EUR (European) [514 total] | 201502?? |
 | 1000g2015feb_sas       | same as 1000g2015feb_all for SAS (South Asian) [494 total] | 201502?? |
-| esp5400siv2_all        | [Exome Variant Server] alternative allele frequency in All subjects in the NHLBI-ESP project with 5400 exomes. This is lifted over from hg19. (Includes sequencing errors.) | ?????? |
+| esp5400_all        | [Exome Variant Server] alternative allele frequency in All subjects in the NHLBI-ESP project with 5400 exomes. This is lifted over from hg19. (Includes sequencing errors.) | ?????? |
 | esp6500siv2_all        | [Exome Variant Server] alternative allele frequency in All subjects in the NHLBI-ESP project with 6500 exomes (2203 African-Americans and 4300 European-Americans unrelated individuals), including the indel calls and the chrY calls. This is lifted over from hg19. | 20141222 |
 | cosmic70              | COSMIC database version 70  | 20140224 |
 | clinvar_20150330       | CLINVAR database with Variant Clinical Significance (unknown, untested, non-pathogenic, probable-non-pathogenic, probable-pathogenic, pathogenic, drug-response, histocompatibility, other) and Variant disease name | 20150413 | 
