@@ -139,7 +139,7 @@ def analyse_covariation_patterns_2ndpass(input_file,
                      "-knownSites %s " \
                      "-knownSites %s " \
                      "-knownSites %s " \
-                     "-BQSR %s" \
+                     "-BQSR %s " \
                      "-o %s" % (heap_mem,
                                 ref_genome,
                                 input_file,
@@ -273,3 +273,35 @@ def variant_filtering(input_file,
                             input_file,
                             output_file)
     return cmd_filter
+
+
+def variants2table(input_file,
+                   output_file,
+                   ref_genome,
+                   heap_mem):
+    """
+    Extract fields from VCF file.
+    """
+
+    cmd_2table = "java -%s -Djava.io.tmpdir=$TMPDIR " \
+                 "-jar $NGS_GATK/GenomeAnalysisTK.jar " \
+                 "-R %s " \
+                 "-T VariantsToTable " \
+                 "-V %s " \
+                 "-F CHROM " \
+                 "-F POS " \
+                 "-F REF " \
+                 "-F ALT " \
+                 "-F QUAL " \
+                 "-F DP " \
+                 "-F QD " \
+                 "-F Gene.ensGene " \
+                 "-F ExonicFunc.ensGene " \
+                 "-GF GT " \
+                 "-GF AD " \
+                 "-o %s " \
+                 "--allowMissingData" % (heap_mem,
+                                         ref_genome,
+                                         input_file,
+                                         output_file)
+    return cmd_2table

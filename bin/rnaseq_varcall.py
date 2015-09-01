@@ -21,8 +21,8 @@ from rnaseqlib.varcall import filter_vcf as fv
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Genetic screen workflow '
-                                                 '0.0.1')
+    parser = argparse.ArgumentParser(description='RNA-seq variant calling'
+                                                 'workflow 0.1')
     parser.add_argument('--debug', dest='debug', required=False, type=int,
                         help='Debug level')
     parser.add_argument('--stage', dest='stage', required=False,
@@ -469,7 +469,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|bamfo", args.stage):
+    if re.search(r"all|bamfo_varcall", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
@@ -489,7 +489,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|samtools", args.stage):
+    if re.search(r"all|samtools_varcall", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
@@ -508,7 +508,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|gatk", args.stage):
+    if re.search(r"all|gatk_varcall", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
@@ -621,14 +621,16 @@ if __name__ == '__main__':
             protocol="ensGene,"
                      + "cytoBand,"
                      + "genomicSuperDups,"
+                     + "snp142Mult,"
                      + "snp129,"
                      + "snp142Common,"
-                     + "1000g2014oct_all,"
-                     + "1000g2014oct_afr,"
-                     + "1000g2014oct_amr,"
-                     + "1000g2014oct_eas,"
-                     + "1000g2014oct_eur,"
-                     + "1000g2014oct_sas,"
+                     + "1000g2015feb_all,"
+                     + "1000g2015feb_afr,"
+                     + "1000g2015feb_amr,"
+                     + "1000g2015feb_eas,"
+                     + "1000g2015feb_eur,"
+                     + "1000g2015feb_sas,"
+                     + "esp5400_all,"
                      + "esp6500siv2_all,"
                      + "cosmic70,"
                      + "clinvar_20150330,"
@@ -638,7 +640,7 @@ if __name__ == '__main__':
             output_file=project_dir + "/"
                         + args.project_name + "."
                         + file_ext['annotation'],
-            operation="g,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f",
+            operation="g,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f",
             buildversion="hg19",
             annovar_dir=args.annovar
         )
