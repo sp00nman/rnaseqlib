@@ -79,6 +79,7 @@ def filter_vcf(input_file,
         COUNT_LOWQUAL = 0
         COUNT_HRUN = 0
         COUNT_NHRUN = 0
+        COUNT_NINDEL = 0
         COUNT_TOTAL= 0
         COUNT_INDEL = 0
         COUNT_SNV = 0
@@ -111,6 +112,8 @@ def filter_vcf(input_file,
                     COUNT_HRUN += 1
                 if filter == 'nHRun':
                     COUNT_NHRUN += 1
+                if filter == 'nIndel':
+                    COUNT_NINDEL += 1
 
             if record.is_indel:
                 COUNT_INDEL += 1
@@ -140,8 +143,10 @@ def filter_vcf(input_file,
             # for some odd reason is [None] doesn't work, is that
             # an empty list ?
             if not record.FILTER \
-                    and record.INFO['snp138NonFlagged'] == [None] \
-                    and record.INFO['1000g2014oct_all'] < 0.1 \
+                    and record.INFO['snp142Common'] == [None] \
+                    and record.INFO['1000g2015feb_all'] < 0.1 \
+                    and record.INFO['esp5400_all'] < 0.1 \
+                    and record.INFO['esp6500siv2_all'] < 0.1 \
                     and record.INFO['ExonicFunc.ensGene'][0] \
                             != "synonymous_SNV":
 
@@ -156,7 +161,7 @@ def filter_vcf(input_file,
                     if info == "UTR3" or info == "UTR5":
                         vcf_UTR.write_record(record)
                     if info == "exonic;splicing":
-                        vcf_exonic.write_record(record)
+                        vcf_exonic_splicing.write_record(record)
                     if info == "ncRNA_exonic" :
                         vcf_ncRNA_exonic.write_record(record)
                     if info == "ncRNA_splicing":
@@ -171,6 +176,7 @@ def filter_vcf(input_file,
                 + "COUNT_LOWQUAL"               + "\t" \
                 + "COUNT_HRUN"                  + "\t" \
                 + "COUNT_NHRUN"                 + "\t" \
+                + "COUNT_NINDEL"                + "\t" \
                 + "COUNT_TOTAL"                 + "\t" \
                 + "COUNT_INDEL"                 + "\t" \
                 + "COUNT_SNV"                   + "\t" \
@@ -190,6 +196,7 @@ def filter_vcf(input_file,
                 + str(COUNT_LOWQUAL)            + "\t" \
                 + str(COUNT_HRUN)               + "\t" \
                 + str(COUNT_NHRUN)              + "\t" \
+                + str(COUNT_NINDEL)             + "\t" \
                 + str(COUNT_TOTAL)              + "\t" \
                 + str(COUNT_INDEL)              + "\t" \
                 + str(COUNT_SNV)                + "\t" \
@@ -209,6 +216,7 @@ def filter_vcf(input_file,
         all.close()
         exonic.close()
         splicing.close()
+        exonic_splicing.close()
         UTR.close()
         stats.close()
 
