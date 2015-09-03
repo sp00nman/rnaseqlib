@@ -23,4 +23,5 @@ annotation:         Annotate variants with annovar.
 dbsnp:              Filter dbsnp variants.
 geneanno:           Annotate variants.
 hrun:               Filtering variants in homopolymer regions.
-var2table:          Extract information fields to table
+vcf2table:          Extract information fields to table.
+plot_matrix:        Plot patient mutation matrix.

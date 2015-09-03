@@ -36,7 +36,11 @@ def extract_genes(project_dir,
                   output_file,
                   target_list,
                   vcf2table,
-                  conversion_table):
+                  conversion_table,
+                  exonic_func="nonsynonymous_SNV",
+                  quality=0,
+                  depth=0,
+                  quality_by_depth=0):
     """
 
     :param project_dir: Project directory
@@ -77,10 +81,11 @@ def extract_genes(project_dir,
         #    QD=0
         #)
 
-        variant_table = variant_table[variant_table['ExonicFunc_ensGene'] == "nonsynonymous_SNV"]
-        variant_table = variant_table[variant_table['QUAL'] > 50]
-        variant_table = variant_table[variant_table['DP'] > 5]
-        variant_table = variant_table[variant_table['QD'] > 5]
+        variant_table = variant_table[variant_table['ExonicFunc_ensGene'] \
+                                      == str(exonic_func)]
+        variant_table = variant_table[variant_table['QUAL'] > int(quality)]
+        variant_table = variant_table[variant_table['DP'] > int(depth)]
+        variant_table = variant_table[variant_table['QD'] > int(quality_by_depth)]
 
 
         selected_genes = variant_table[variant_table.Gene_ensGene.isin(
