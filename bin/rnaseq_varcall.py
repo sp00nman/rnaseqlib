@@ -28,9 +28,9 @@ if __name__ == '__main__':
     parser.add_argument('--stage', dest='stage', required=False,
                         help='Limit job submission to a particular '
                              'analysis stage.'
-                        '[all,alignment,star2pass,extract,duplicates,index,'
-                        'splitntrim,indel,bqsr,bamfo,samtools,gatk,gatk_flag,'
-                        'hrun_flag,nind_flag,annovar,selection]')
+                        '[process_all,alignment,star2pass,extract,duplicates,'
+                        'index,splitntrim,indel,bqsr,bamfo,samtools,gatk,'
+                        'gatk_flag,hrun_flag,nind_flag,annovar,selection]')
     parser.add_argument('--project_name', required=False, type=str,
                         help="name of the project")
     parser.add_argument('--read1', required=False, type=str,
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     stdout_msg = ts.load_dictionary(data_dir + 'stdout_message.txt')
 
     # start workflow
-    if re.search(r"all|alignment", args.stage):
+    if re.search(r"process_all|alignment", args.stage):
 
         cmd = star_rb.rnaseq_align(
             star_genome=args.star_genome,
@@ -147,7 +147,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|star2pass", args.stage):
+    if re.search(r"process_all|star2pass", args.stage):
         cmd = star_rb.star_index(
             novel_ref=project_dir + "/"
                       + "star_2pass",
@@ -185,7 +185,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|extract", args.stage):
+    if re.search(r"process_all|extract", args.stage):
 
         if args.region is False:
             sample_file = project_dir + "/" \
@@ -255,7 +255,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|replace_rg", args.stage):
+    if re.search(r"process_all|replace_rg", args.stage):
 
         if args.region is False:
             if re.search(r"star2pass", args.stage):
@@ -285,7 +285,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|duplicates", args.stage):
+    if re.search(r"process_all|duplicates", args.stage):
 
         sample_file = project_dir + "/" \
                         + args.project_name + "." \
@@ -305,7 +305,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|index", args.stage):
+    if re.search(r"process_all|index", args.stage):
 
         sample_file = project_dir + "/" \
                         + args.project_name + "." \
@@ -320,7 +320,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|splitntrim", args.stage):
+    if re.search(r"process_all|splitntrim", args.stage):
 
         sample_file = project_dir + "/" \
                         + args.project_name + "." \
@@ -340,7 +340,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|indel", args.stage):
+    if re.search(r"process_all|indel", args.stage):
 
         sample_file = project_dir + "/" \
                         + args.project_name + "." \
@@ -384,7 +384,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|bqsr", args.stage):
+    if re.search(r"process_all|bqsr", args.stage):
 
         sample_file = project_dir + "/" \
                         + args.project_name + "." \
@@ -469,7 +469,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|bamfo_varcall", args.stage):
+    if re.search(r"process_all|bamfo_varcall", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
@@ -489,7 +489,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|samtools_varcall", args.stage):
+    if re.search(r"process_all|samtools_varcall", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
@@ -508,7 +508,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|gatk_varcall", args.stage):
+    if re.search(r"process_all|gatk_varcall", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
@@ -529,7 +529,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|gatk_flag", args.stage):
+    if re.search(r"process_all|gatk_flag", args.stage):
 
         #only gatk
         sample_file = project_dir + "/" \
@@ -551,7 +551,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|hrun_flag", args.stage):
+    if re.search(r"process_all|hrun_flag", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
@@ -595,7 +595,7 @@ if __name__ == '__main__':
             dis=1
         )
 
-    if re.search(r"all|nind_flag", args.stage):
+    if re.search(r"process_all|nind_flag", args.stage):
         # near indel, indel matches with nindel_flag -->so stupid
 
         sample_file = project_dir + "/" \
@@ -610,7 +610,7 @@ if __name__ == '__main__':
             dis=5
         )
 
-    if re.search(r"all|annovar", args.stage):
+    if re.search(r"process_all|annovar", args.stage):
 
         sample_file = project_dir + "/" \
                      + args.project_name + "." \
@@ -651,7 +651,7 @@ if __name__ == '__main__':
             debug=args.debug
         )
 
-    if re.search(r"all|selection", args.stage):
+    if re.search(r"process_all|selection", args.stage):
 
         sample_file = project_dir + "/" \
                     + args.project_name + "." \
