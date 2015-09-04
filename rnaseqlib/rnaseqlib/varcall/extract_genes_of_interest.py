@@ -88,30 +88,30 @@ def extract_genes(project_dir,
         variant_table = variant_table[variant_table['QD'] > int(quality_by_depth)]
 
 
-        selected_genes = variant_table[variant_table.Gene_ensGene.isin(
+        variant_table = variant_table[variant_table.Gene_ensGene.isin(
             targets)]
 
         # add patient information
-        selected_genes['UNIQ_SAMPLE_ID'] = uniq_sample_id
-        selected_genes['PATIENT_ID'] = patient_id
+        variant_table['UNIQ_SAMPLE_ID'] = uniq_sample_id
+        variant_table['PATIENT_ID'] = patient_id
 
         # append to file
-        selected_col = selected_genes[['UNIQ_SAMPLE_ID',
+        variant_table = variant_table[['UNIQ_SAMPLE_ID',
                                        'PATIENT_ID',
                                        'Gene_ensGene',
                                        'AD']]
         # convert gene ids
         key_file = cv.read_ensgene_genesymb(conversion_table)
-        ensids = list(selected_col['Gene_ensGene'])
+        ensids = list(variant_table['Gene_ensGene'])
         genesymbols = []
         for ensid in ensids:
             genesymbol = cv.ensgene2genesymbol(key_file, ensid)
             genesymbols.append(genesymbol)
 
         # add column
-        selected_col['GENESYMBOL'] = genesymbols
+        variant_table['GENESYMBOL'] = genesymbols
 
-        selected_col.to_csv(
+        variant_table.to_csv(
             out_handle,
             sep="\t",
             index=0,
