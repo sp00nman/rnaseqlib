@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
             cmd = gatk.variants2table(
                 input_file=path2vcf,
-                output_file=project_dir + "_"
+                output_file=project_dir + "/" + args.project_name + "_"
                             + uniq_sample_id + "."
                             + file_ext['vcf2table'],
                 ref_genome=args.ref_genome,
@@ -119,8 +119,8 @@ if __name__ == '__main__':
     if re.search(r"all|targetlist", args.stage):
 
         goi.extract_genes(
-            project_dir=project_dir,
-            output_file=project_dir + "_"
+            project_dir=project_dir + "/" + args.project_name,
+            output_file=project_dir + "/" + args.project_name + "_"
                         + file_ext['targetlist'],
             target_list=args.target_list,
             vcf2table=args.patient_vcf,
@@ -135,9 +135,9 @@ if __name__ == '__main__':
 
         cmd = R.plot_patient_mutation_matrix(
             clinical_info=args.clinical_information,
-            mutation_info=project_dir + "_"
+            mutation_info=project_dir + "/" + args.project_name + "_"
                           + file_ext['targetlist'],
-            output_file=project_dir + ".pdf",
+            output_file=project_dir + "/" + args.project_name,
             dn=dn
         )
 

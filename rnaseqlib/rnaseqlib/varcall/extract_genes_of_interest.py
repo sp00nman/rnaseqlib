@@ -59,10 +59,7 @@ def extract_genes(project_dir,
         uniq_sample_id = vcf_file[0]
         patient_id = vcf_file[1]
 
-        print uniq_sample_id
         print patient_id
-
-        print project_dir + "_" + uniq_sample_id + ".vcf2table"
 
         variant_table = pd.read_csv(
             project_dir + "_" + uniq_sample_id + ".vcf2table",

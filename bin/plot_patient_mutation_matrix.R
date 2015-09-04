@@ -142,8 +142,8 @@ plot.barplot.occurences <- function(bp.df,revert=TRUE){
 }
 
 
-print_plot <- function(filename, g_obj){
-  pdf(file=filename, width=14, height=10, useDingbats=FALSE)
+print_plot <- function(filename, g_obj, width, height){
+  pdf(file=filename, width=width, height=height, useDingbats=FALSE)
   print(g_obj)
   dev.off()
 }
@@ -233,12 +233,11 @@ plot.patient.mutation.matrix <- function(heat.df){
 }
 
 options <- commandArgs(trailingOnly=TRUE)
-clinical_info = options[1]
-mutation_info = options[2]
-output_file = options[3]
+mutation_info = options[1]
+clinical_info = options[2]
+project_dir = options[3]
 
-#clinical_info = "~/Dropbox/CeMM_PhD_Sync2Dropbox/projects_cemm/prj_rnaseq_varcall_myeloid_panel/R_mutation_patient_plot/patient_matrix.csv"
-#mutation_info = "~/Dropbox/CeMM_PhD_Sync2Dropbox/projects_cemm/prj_rnaseq_varcall_myeloid_panel/R_mutation_patient_plot/mut_patient_mutation.table"
+drivers <- c("JAK2_CLIN", "CALR_CLIN", "MPL_CLIN")
 
 # read in data
 patients <- read.clinical.info(clinical_info)
@@ -271,16 +270,17 @@ merge_patmut <- merge(
 uniq_merge_patmut <- merge_patmut[!duplicated(merge_patmut[c("SAMPLE_ID")]), ]
 # count reccurent mutations
 bp.df <- count.recurrent.mutations(
-  drivers=c("JAK2_CLIN",
-            "CALR_CLIN",
-            "MPL_CLIN"),
+  drivers=drivers,
   mutations,
   patmut=uniq_merge_patmut
 )
 
 g_obj <- plot.barplot.occurences(bp.df)
-print_plot(output_file, 
-           g_obj)
+print_plot(paste(project_dir, "_barplot_occurences.pdf", sep=""), 
+           g_obj,
+           width=7,
+           height=2+length(unique(mutations$GENESYMBOL))*(1/5)
+)
 
 plot_matrix <- create.patient.mutation.matrix(
   patmut = uniq_merge_patmut,
@@ -288,8 +288,11 @@ plot_matrix <- create.patient.mutation.matrix(
   drivers = drivers
 )
 j_obj <- plot.patient.mutation.matrix(plot_matrix)
-print_plot(output_file, 
-           j_obj)
+print_plot(paste(project_dir, "_matrix.pdf", sep=""), 
+           j_obj,
+           width=14,
+           height=2+length(unique(mutations$GENESYMBOL))*(1/5)
+)
 
 
 
