@@ -144,9 +144,9 @@ def filter_vcf(input_file,
             # an empty list ?
             if not record.FILTER \
                     and record.INFO['snp142Common'] == [None] \
-                    and record.INFO['1000g2015feb_all'] < 0.1 \
-                    and record.INFO['esp5400_all'] < 0.1 \
-                    and record.INFO['esp6500siv2_all'] < 0.1 \
+                    and record.INFO['1000g2015feb_all'] < 0.01 \
+                    and record.INFO['esp5400_all'] < 0.01 \
+                    and record.INFO['esp6500siv2_all'] < 0.01 \
                     and record.INFO['ExonicFunc.ensGene'][0] \
                             != "synonymous_SNV":
 
