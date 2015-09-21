@@ -17,6 +17,7 @@ from rnaseqlib.varcall import bamfo_runnables as bamfo_rb
 from rnaseqlib.varcall import homopolymer_flag as hf
 from rnaseqlib.varcall import near_indel_flag as nif
 from rnaseqlib.varcall import filter_vcf as fv
+from rnaseqlib.varcall import variant_flag as vf
 
 
 if __name__ == '__main__':
@@ -30,7 +31,8 @@ if __name__ == '__main__':
                              'analysis stage.'
                         '[process_all,alignment,star2pass,extract,duplicates,'
                         'index,splitntrim,indel,bqsr,bamfo,samtools,gatk,'
-                        'gatk_flag,hrun_flag,nind_flag,annovar,selection]')
+                        'gatk_flag,hrun_flag,nind_flag,variant_flag,annovar,'
+                        'selection]')
     parser.add_argument('--project_name', required=False, type=str,
                         help="name of the project")
     parser.add_argument('--read1', required=False, type=str,
@@ -67,6 +69,10 @@ if __name__ == '__main__':
                         help="For region variant calling.")
     parser.add_argument('--region', required=False, type=str, default=False,
                         help="region eg. 20:30946147-31027122")
+
+    # options to flag common variants
+    parser.add_argument('--flag_variants', required=False, type=str,
+                        help="Flag variants in list.")
 
     # annovar specific options
     parser.add_argument('--annovar', required=False, type=str,
@@ -610,11 +616,27 @@ if __name__ == '__main__':
             dis=5
         )
 
+    if re.search(r"process_all|variant_flag", args.stage):
+
+        sample_file = project_dir + "/" \
+                    + args.project_name + "." \
+                    + file_ext['nindel']
+
+        vf.annotate_variants(
+            anno_file=args.flag_variants,
+            input_file=sample_file,
+            output_file=project_dir + "/"
+                        + args.project_name + "."
+                        + file_ext['varflag'],
+            min_num_occurrence=2,
+            min_vaf=0.4
+        )
+
     if re.search(r"process_all|annovar", args.stage):
 
         sample_file = project_dir + "/" \
                      + args.project_name + "." \
-                     + file_ext['nindel']
+                     + file_ext['varflag']
 
         cmd = annovar_rb.run_annovar(
             vcf_file=sample_file,

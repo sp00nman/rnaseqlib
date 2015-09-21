@@ -29,6 +29,7 @@ coordinates:        coordinates.txt
 seq:                coordinate_sequences.txt
 hrun:               hrun_filtering_varcall_gatk.vcf
 nindel:             nindel_hrun_filtering_varcall_gatk.vcf
+varflag:            varflag_nindel_hrun_filtering_varcall_gatk.vcf
 annovar:            annovar.hg19_multianno.vcf
 inhouse:            filtered_annovar_hg19_multianno.vcf
 vcf2table:          vcf2table
