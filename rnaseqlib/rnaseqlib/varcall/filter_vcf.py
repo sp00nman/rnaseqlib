@@ -52,8 +52,6 @@ def filter_vcf(input_file,
     stats = open(file_prefix + ".stats_variants.txt", 'w')
     # separate tables
     all = open(file_prefix + ".all." + file_suffix, 'w')
-    exonic = open(file_prefix + ".exonic." + file_suffix, 'w')
-    splicing = open(file_prefix + ".splicing." + file_suffix, 'w')
     UTR = open(file_prefix + ".UTR." + file_suffix, 'w')
     exonic_splicing = open(file_prefix + ".exonic_splicing." + file_suffix, 'w')
     ncRNA_exonic = open(file_prefix + ".ncRNA_exonic." + file_suffix, 'w')
@@ -62,8 +60,6 @@ def filter_vcf(input_file,
     try:
         vcf_reader = vcf.Reader(vcf_file)
         vcf_all = vcf.Writer(all, vcf_reader)
-        vcf_exonic = vcf.Writer(exonic, vcf_reader)
-        vcf_splicing = vcf.Writer(splicing, vcf_reader)
         vcf_UTR = vcf.Writer(UTR, vcf_reader)
         vcf_exonic_splicing = vcf.Writer(exonic_splicing, vcf_reader)
         vcf_ncRNA_exonic = vcf.Writer(ncRNA_exonic, vcf_reader)
@@ -154,14 +150,10 @@ def filter_vcf(input_file,
                 vcf_all.write_record(record)
 
                 for info in record.INFO['Func.ensGene']:
-                    if info == "exonic":
-                        vcf_exonic.write_record(record)
-                    if info == "splicing":
-                        vcf_splicing.write_record(record)
+                    if info == "exonic" or info == "splicing" or info == "exonic;splicing":
+                        vcf_exonic_splicing.write_record(record)
                     if info == "UTR3" or info == "UTR5":
                         vcf_UTR.write_record(record)
-                    if info == "exonic;splicing":
-                        vcf_exonic_splicing.write_record(record)
                     if info == "ncRNA_exonic" :
                         vcf_ncRNA_exonic.write_record(record)
                     if info == "ncRNA_splicing":
@@ -214,8 +206,6 @@ def filter_vcf(input_file,
     finally:
         vcf_file.close()
         all.close()
-        exonic.close()
-        splicing.close()
         exonic_splicing.close()
         UTR.close()
         stats.close()

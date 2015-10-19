@@ -34,3 +34,4 @@ annovar:            annovar.hg19_multianno.vcf
 inhouse:            filtered_annovar_hg19_multianno.vcf
 vcf2table:          vcf2table
 targetlist:         patient_mutation.table
+proud_pv:           exonic_splicing.filtered_annovar_hg19_multianno.vcf

@@ -295,10 +295,53 @@ def variants2table(input_file,
                  "-F QUAL " \
                  "-F DP " \
                  "-F QD " \
+                 "-F Func.ensGene " \
                  "-F Gene.ensGene " \
                  "-F ExonicFunc.ensGene " \
+                 "-F AAChange.ensGene " \
                  "-GF GT " \
                  "-GF AD " \
+                 "-F SIFT_score " \
+                 "-F Polyphen2_HDIV_score " \
+                 "-F CADD_phred " \
+                 "-o %s " \
+                 "--allowMissingData" % (heap_mem,
+                                         ref_genome,
+                                         input_file,
+                                         output_file)
+    return cmd_2table
+
+
+def var2table_proudpv(input_file,
+                      output_file,
+                      ref_genome,
+                      heap_mem):
+    """
+    Extract fields from VCF file.
+    """
+
+    cmd_2table = "java -%s -Djava.io.tmpdir=$TMPDIR " \
+                 "-jar $NGS_GATK/GenomeAnalysisTK.jar " \
+                 "-R %s " \
+                 "-T VariantsToTable " \
+                 "-V %s " \
+                 "-F CSQT " \
+                 "-F ExonicFunc.ensGene " \
+                 "-F CHROM " \
+                 "-F POS " \
+                 "-F REF " \
+                 "-F ALT " \
+                 "-F AAChange.ensGene " \
+                 "-F DP " \
+                 "-GF GQ " \
+                 "-GF AD " \
+                 "-GF VF " \
+                 "-F ExonicFunc.ensGene " \
+                 "-F Gene.ensGene " \
+                 "-F cosmic70 " \
+                 "-F SIFT_score " \
+                 "-F CADD_phred " \
+                 "-F Polyphen2_HDIV_score " \
                  "-o %s " \
                  "--allowMissingData" % (heap_mem,
                                          ref_genome,
