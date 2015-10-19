@@ -48,9 +48,9 @@ def load_dictionary(
 
     d = {}
 
-    try:
-        file_handle = open(input_file)
+    file_handle = open(input_file)
 
+    try:
         for line in file_handle:
             key_value_pair = line.split(sep)
             d[key_value_pair[0].strip(' ')] = \
@@ -70,7 +70,10 @@ def create_output_dir(
         project_name):
     """
     Create project directory.
+    :param output_dir: Output directory
+    :param project_name: Project directory
     """
+
     if not exists(output_dir + "/" + project_name):
         logging.info('Create folder %s' % output_dir)
         try:
@@ -79,21 +82,28 @@ def create_output_dir(
             exit('%s\nFailed to create directory', (e, output_dir))
 
 
-def load_tab_delimited(
-    input_file,
-    sep='\t'
-):
+def load_tab_delimited(input_file,
+                       sep='\t'):
+
+    """
+    Read in file line by line and split line
+    :param input_file:
+    :param sep: eg '\t'  or 'none'
+    :return: list
+    """
+
+    file_handle = open(input_file, 'r')
 
     try:
-        file_handle = open(input_file)
-
-        vcfs = [line.rstrip('\n').split(sep) for line in file_handle]
+        if sep == 'none':
+            lines = [line.rstrip('\n') for line in file_handle]
+        else:
+            lines = [line.rstrip('\n').split(sep) for line in file_handle]
 
     except IOError:
         print('Patient VCF file missing')
 
-
     finally:
         file_handle.close()
 
-    return vcfs
+    return lines
