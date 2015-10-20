@@ -15,64 +15,115 @@ VCF_TABLE = \
      "QUAL",
      "DP",
      "QD",
+     "Func.ensGene",
      "Gene_ensGene",
      "ExonicFunc_ensGene",
      "AAChange_ensGene",
+     "SIFT_score",
+     "Polyphen2_HDIV_score",
+     "CADD_phred",
      "GT",
      "AD"]
 
 SELECT_COLUMNS = \
-    ['CHROM',
-     'POS',
-     'REF',
-     'ALT',
-     'UNIQ_SAMPLE_ID',
-     'PATIENT_ID',
-     'Gene_ensGene',
-     'ExonicFunc_ensGene',
-     'AAChange_ensGene',
-     'QUAL',
-     'DP',
-     'QD',
-     'AD']
+    ["UNIQ_SAMPLE_ID",
+     "PATIENT_ID",
+     "CHROM",
+     "POS",
+     "REF",
+     "ALT",
+     "GENESYMBOL",
+     "ENSEMBL_GENEID",
+     "ENSEMBL_TRANSCRIPTID",
+     "Func.ensGene",
+     "ExonicFunc_ensGene",
+     "CANONICAL_TRANSCRIPT_EXON_NUM",
+     "CANONICAL_TRANSCRIPT_NUCLEOTIDE_CHANGE",
+     "CANONICAL_TRANSCRIPT_AS_CHANGE",
+     "QUAL",
+     "DP",
+     "QD",
+     "AD",
+     "VARIANT_FREQUENCY",
+     "SIFT_score",
+     "Polyphen2_HDIV_score",
+     "CADD_phred"]
 
 
-def filter_variants(
-        df,
-        ExonicFunc_ensGene="nonsynonymous_SNV",
-        QUAL=0,
-        DP=0,
-        QD=0):
-
+def convert_geneids(key_file,
+                    ensids):
     """
-    Simple function to filter for low confidence variants.
-    :param input_file: Input file
-    :param ExonicFunc_ensGene: Ensembl gene ids
-    :param QUAL: Variant quality
-    :param DP: Variant read depth; number of reads covering that position
-    :param QD: Variant quality by depth
-    :return: pandas dataframe object
+    For each ensemble gene id convert to genesymbol if available
+    :param key_file: dictionary of ensembl gene ids to genesymbol mapping
+    :param ensids: list of ensids
+    :return:
     """
 
-    df = df[df['ExonicFunc_ensGene'] == ExonicFunc_ensGene]
-    df = df[df['QUAL'] > QUAL]
-    df = df[df['DP'] > DP]
-    df = df[df['QD'] > QD]
+    genesymbols = []
 
-    return df
+    for ensid in ensids:
+        genesymbol = cv.ensgene2genesymbol(key_file, ensid)
+        genesymbols.append(genesymbol)
+
+    return genesymbols
+
+
+def select_canonical_transcript(
+        row,
+        canonical_transcripts,
+        sep=","):
+    """
+    Extract from all transcript the canonical transcript
+    :param row: for each row in variant_table
+    :param canonical_transcripts: a dictionary with key=ensgeneid and
+    value=transcriptid
+    :param sep: delimiter of that field, "," - is standard
+    :return: str with the canonical transcript
+    """
+
+    transcripts = row.split(sep)
+
+    # if no canonical transcript is found, take the first...
+    cano_trans = transcripts[0]
+
+    for transcript in transcripts:
+        if transcript == "UNKNOWN":
+            cano_trans = transcript
+        else:
+            fields = transcript.split(":")
+
+            if fields[0] in canonical_transcripts:
+                if fields[1] == canonical_transcripts[fields[0]]:
+                 cano_trans = transcript
+            else:
+                # keep gene_symbol if nothing was found
+                cano_trans = transcript
+    return cano_trans
+
+
+def calculate_vf(
+        row,
+        sep=","):
+    """
+    Calculate frequency of alternate allele.
+    :param row: for each row in variant table
+    :param sep: delimiter of REF and ALT read counts; "," - is standard
+    :return: int; allele frequency
+    """
+    return int(row.split(sep)[0])/(int(row.split(sep)[0])+int(row.split(sep)[1]))
 
 
 def extract_genes(
         project_dir,
         output_file,
         target_list,
-        vcf2table,
+        vcf_files,
         conversion_table,
-        canonical_transcript,
-        exonic_func="nonsynonymous_SNV",
-        quality=0,
-        depth=0,
-        quality_by_depth=0):
+        canonical_transcripts,
+        quality,
+        depth,
+        quality_by_depth,
+        exonic_func="nonsynonymous_SNV"):
 
     """
     Select genes of interest, filter variant and parse output.
@@ -93,59 +144,90 @@ def extract_genes(
     """
 
     out_handle = open(output_file, 'a')
+    exonic_func_list = exonic_func.split(',')
 
-    for vcf_file in vcfs:
+    for vcf_file in vcf_files:
 
+        #vcf_file[0] has batch attached to it
         uniq_sample_id = vcf_file[0]
         patient_id = vcf_file[1]
 
-        print patient_id
+        print uniq_sample_id
 
+        # read in vcf2table file into pandas data.frame object
         variant_table = pd.read_csv(
-            project_dir + "_" + uniq_sample_id + ".vcf2table",
+            project_dir + "_"
+                + uniq_sample_id
+                + ".vcf2table",
             sep="\t",
-            names=[],
+            names=VCF_TABLE,
             header=True
         )
 
-        #filtered_table = filter_variants(
-        #    df=variant_table,
-        #    ExonicFunc_ensGene="non_synonymous_SNV",
-        #    QUAL=0,
-        #    DP=0,
-        #    QD=0
-        #)
+        #extract only genes of interest
+        variant_table = variant_table[variant_table.Gene_ensGene.isin(
+            target_list)]
 
-        variant_table = variant_table[variant_table['ExonicFunc_ensGene'] \
-                                      == str(exonic_func)]
+        #extract only exonic functions of interest
+        variant_table = variant_table[variant_table.ExonicFunc_ensGene.isin(
+            exonic_func_list)]
+
+        #quality filters
         variant_table = variant_table[variant_table['QUAL'] > int(quality)]
         variant_table = variant_table[variant_table['DP'] > int(depth)]
         variant_table = variant_table[variant_table['QD'] > int(quality_by_depth)]
-        variant_table = variant_table[variant_table.Gene_ensGene.isin(
-            targets)]
 
         # add patient information
         variant_table['UNIQ_SAMPLE_ID'] = uniq_sample_id
         variant_table['PATIENT_ID'] = patient_id
 
-        # select columns
-        variant_table = variant_table[[]]
-        # convert gene ids
-        key_file = cv.read_ensgene_genesymb(conversion_table)
-        ensids = list(variant_table['Gene_ensGene'])
-        genesymbols = []
-        for ensid in ensids:
-            genesymbol = cv.ensgene2genesymbol(key_file, ensid)
-            genesymbols.append(genesymbol)
+        # convert ensids to genesymbols
+        genesymbols = convert_geneids(
+            cv.read_ensgene_genesymb(conversion_table),
+            list(variant_table['Gene_ensGene'])
+        )
 
-        # add column
+        # add genesymbol to table
         variant_table['GENESYMBOL'] = genesymbols
 
-        variant_table.to_csv(
-            out_handle,
-            sep="\t",
-            index=0,
-            header=False
-        )
+        # if dataframe is not empty continue with parsing content
+        if not variant_table.empty:
+
+            # only select canonical transcript
+            variant_table['CANONICAL_TRANSCRIPT'] = \
+                variant_table.apply(lambda row: select_canonical_transcript(
+                    row['AAChange_ensGene'],
+                    canonical_transcripts=canonical_transcripts,
+                    sep=","), axis=1
+                )
+
+            # split AAChange_ensGene by ':'
+            variant_table_split = variant_table[
+                'CANONICAL_TRANSCRIPT'].apply(lambda x: pd.Series(x.split(':')))
+            variant_table_split.columns = ['ENSEMBL_GENEID',
+                                           'ENSEMBL_TRANSCRIPTID',
+                                           'CANONICAL_TRANSCRIPT_EXON_NUM',
+                                           'CANONICAL_TRANSCRIPT_NUCLEOTIDE_CHANGE',
+                                           'CANONICAL_TRANSCRIPT_AS_CHANGE']
+
+            # concatenate the dataframes
+            variant_table_concat = pd.concat([variant_table,variant_table_split], axis=1)
+
+            # calculate allele frequency
+            variant_table_concat['VARIANT_FREQUENCY'] = \
+                variant_table_concat.apply(lambda row: calculate_vf(
+                    row['AD'],
+                    sep=","), axis=1
+                )
+
+            # select specific columns
+            variant_table_concat = variant_table_concat[SELECT_COLUMNS]
+
+            variant_table_concat.to_csv(
+                out_handle,
+                sep="\t",
+                index=0,
+                header=False
+            )
 
     out_handle.close()

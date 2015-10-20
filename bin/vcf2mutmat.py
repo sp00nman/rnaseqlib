@@ -33,6 +33,8 @@ if __name__ == '__main__':
                         help='Reference genome.')
     parser.add_argument('--id_conversion', required=False, type=str,
                         help='Conversion table. Ensembl ids to genesymbols')
+    parser.add_argument('--canonical_transcripts', required=False, type=str,
+                        help='Select canonical transcript.')
 
     # for plotting
     parser.add_argument('--clinical_information', required=False, type=str,
@@ -61,6 +63,13 @@ if __name__ == '__main__':
     # parse command line arguments
     args = parser.parse_args()
 
+    if not args.quality:
+        args.num_cpus = 0
+    if not args.depth:
+        args.depth = 0
+    if not args.quality_by_depth:
+        args.quality_by_depth = 0
+
     # set project directory
     project_dir = args.output_dir + "/" + args.project_name
 
@@ -88,7 +97,7 @@ if __name__ == '__main__':
     )
 
     # start analysis workflow & logging
-    logging.info("Convert vcf files to patient mutation matrix.")
+    logging.info("Annotate and select vcf files.")
 
     # start workflow
     if re.search(r"all|vcf2table", args.stage):
@@ -118,13 +127,21 @@ if __name__ == '__main__':
 
     if re.search(r"all|targetlist", args.stage):
 
+        # read in resource files
+        vcfs = ts.load_tab_delimited(args.patient_vcf)
+        target_list = ts.load_tab_delimited(args.target_list, sep='none')
+        canonical_transcripts = ts.load_dictionary(
+            args.canonical_transcripts,
+            sep="\t")
+
         goi.extract_genes(
             project_dir=project_dir + "/" + args.project_name,
             output_file=project_dir + "/" + args.project_name + "_"
                         + file_ext['targetlist'],
-            target_list=args.target_list,
-            vcf2table=args.patient_vcf,
+            target_list=target_list,
+            vcf_files=vcfs,
             conversion_table=args.id_conversion,
+            canonical_transcripts=canonical_transcripts,
             exonic_func=args.exonic_func,
             quality=args.quality,
             depth=args.depth,
