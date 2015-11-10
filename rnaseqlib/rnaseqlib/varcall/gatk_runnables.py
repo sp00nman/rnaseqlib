@@ -275,7 +275,7 @@ def variant_filtering(input_file,
     return cmd_filter
 
 
-def variants2table(input_file,
+def var2table_rna(input_file,
                    output_file,
                    ref_genome,
                    heap_mem):
@@ -304,6 +304,86 @@ def variants2table(input_file,
                  "-F SIFT_score " \
                  "-F Polyphen2_HDIV_score " \
                  "-F CADD_phred " \
+                 "-o %s " \
+                 "--allowMissingData" % (heap_mem,
+                                         ref_genome,
+                                         input_file,
+                                         output_file)
+    return cmd_2table
+
+
+def var2table_dna(input_file,
+                  output_file,
+                  ref_genome,
+                  heap_mem):
+    """
+    Extract fields from VCF file for dna (exomes in particular; in addition
+    these also include vqslod score and SNPeff annotation
+    """
+
+    cmd_2table = "java -%s -Djava.io.tmpdir=$TMPDIR " \
+                 "-jar $NGS_GATK/GenomeAnalysisTK.jar " \
+                 "-R %s " \
+                 "-T VariantsToTable " \
+                 "-V %s " \
+                 "-F CHROM " \
+                 "-F POS " \
+                 "-F ID " \
+                 "-F REF " \
+                 "-F ALT " \
+                 "-F SNPEFF_GENE_NAME " \
+                 "-F Gene.ensGene " \
+                 "-F SNPEFF_GENE_BIOTYPE " \
+                 "-F Func.ensGene " \
+                 "-F ExonicFunc.ensGene " \
+                 "-F AAChange.ensGene " \
+                 "-F QUAL " \
+                 "-F QD " \
+                 "-GF GT " \
+                 "-GF AD " \
+                 "-GF DP " \
+                 "-GF GQ " \
+                 "-GF PL " \
+                 "-F VQSLOD " \
+                 "-F cytoBand " \
+                 "-F genomicSuperDups " \
+                 "-F snp129 " \
+                 "-F snp142Common " \
+                 "-F 1000g2015feb_all " \
+                 "-F 1000g2015feb_afr " \
+                 "-F 1000g2015feb_amr " \
+                 "-F 1000g2015feb_eas " \
+                 "-F 1000g2015feb_sas " \
+                 "-F esp5400_all " \
+                 "-F esp6500siv2_all " \
+                 "-F cosmic70 " \
+                 "-F clinvar_20150330 " \
+                 "-F SIFT_score " \
+                 "-F SIFT_pred " \
+                 "-F Polyphen2_HDIV_score " \
+                 "-F Polyphen2_HDIV_pred " \
+                 "-F Polyphen2_HVAR_score " \
+                 "-F Polyphen2_HVAR_pred " \
+                 "-F LRT_score " \
+                 "-F LRT_pred " \
+                 "-F MutationTaster_score " \
+                 "-F MutationTaster_pred " \
+                 "-F FATHMM_score " \
+                 "-F FATHMM_pred " \
+                 "-F RadialSVM_score " \
+                 "-F RadialSVM_pred " \
+                 "-F LR_score " \
+                 "-F LR_pred " \
+                 "-F VEST3_score " \
+                 "-F CADD_raw " \
+                 "-F CADD_phred " \
+                 "-F GERP++_RS " \
+                 "-F phyloP46way_placental " \
+                 "-F phyloP100way_vertebrate " \
+                 "-F SiPhy_29way_logOdds " \
+                 "-F caddgt10 " \
+                 "-F CADDindel " \
+                 "-F CADDindel_Phred " \
                  "-o %s " \
                  "--allowMissingData" % (heap_mem,
                                          ref_genome,

@@ -18,7 +18,8 @@ if __name__ == '__main__':
                         help='Debug level')
     parser.add_argument('--stage', dest='stage', required=False,
                         help='Limit job submission to a particular '
-                             'analysis stage.[process_all,annovar,selection]')
+                             'analysis stage.[process_all,annovar,selection,'
+                             'vcf2table]')
     parser.add_argument('--project_name', required=False, type=str,
                         help="name of the project")
     parser.add_argument('--patient_vcf', required=False, type=str,
@@ -141,7 +142,7 @@ if __name__ == '__main__':
                 file_suffix=file_ext['inhouse']
             )
 
-    if re.search(r"process_all|vcf2table", args.stage):
+    if re.search(r"process_all|vcf2table_proudpv", args.stage):
 
         vcfs = ts.load_tab_delimited(args.patient_vcf)
 
@@ -156,7 +157,35 @@ if __name__ == '__main__':
                         + args.project_name + "."
                         + uniq_sample_id + "."
                         + file_ext['proud_pv'],
-                output_file=project_dir + "/" + args.project_name + "_"
+                output_file=project_dir + "/" + args.project_name + "."
+                            + uniq_sample_id + "."
+                            + file_ext['vcf2table'],
+                ref_genome=args.ref_genome,
+                heap_mem=args.heap_mem
+            )
+
+            status = ts.run_cmd(
+                message=stdout_msg['vcf2table'],
+                command=cmd,
+                debug=args.debug
+            )
+
+    if re.search(r"process_all|vcf2table_dna", args.stage):
+
+        vcfs = ts.load_tab_delimited(args.patient_vcf)
+
+        for vcf_file in vcfs:
+
+            uniq_sample_id = vcf_file[0]
+            patient_id = vcf_file[1]
+            path2vcf = vcf_file[2]
+
+            cmd = gatk.var2table_dna(
+                input_file=project_dir + "/"
+                           + args.project_name + "."
+                           + uniq_sample_id + "."
+                           + file_ext['proud_pv'],
+                output_file=project_dir + "/" + args.project_name + "."
                             + uniq_sample_id + "."
                             + file_ext['vcf2table'],
                 ref_genome=args.ref_genome,

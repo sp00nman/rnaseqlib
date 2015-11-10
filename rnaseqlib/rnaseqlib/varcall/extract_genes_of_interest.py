@@ -108,9 +108,9 @@ def calculate_vf(
     Calculate frequency of alternate allele.
     :param row: for each row in variant table
     :param sep: delimiter of REF and ALT read counts; "," - is standard
-    :return: int; allele frequency
+    :return: float; allele frequency
     """
-    return int(row.split(sep)[0])/(int(row.split(sep)[0])+int(row.split(sep)[1]))
+    return float(row.split(sep)[0])/(float(row.split(sep)[0])+float(row.split(sep)[1]))
 
 
 def extract_genes(
@@ -193,8 +193,15 @@ def extract_genes(
         # if dataframe is not empty continue with parsing content
         if not variant_table.empty:
 
+            # calculate allele frequency
+            variant_table['VARIANT_FREQUENCY'] = \
+                variant_table.apply(lambda row: calculate_vf(
+                    row['AD'],
+                    sep=","), axis=1
+                )
+
             # only select canonical transcript
-            variant_table['CANONICAL_TRANSCRIPT'] = \
+            variant_table['CANONICAL_TRANSCRIPT_AAChange'] = \
                 variant_table.apply(lambda row: select_canonical_transcript(
                     row['AAChange_ensGene'],
                     canonical_transcripts=canonical_transcripts,
@@ -203,7 +210,8 @@ def extract_genes(
 
             # split AAChange_ensGene by ':'
             variant_table_split = variant_table[
-                'CANONICAL_TRANSCRIPT'].apply(lambda x: pd.Series(x.split(':')))
+                'CANONICAL_TRANSCRIPT_AAChange'].apply(lambda row: pd.Series(row.split(':')))
+            # rename columns
             variant_table_split.columns = ['ENSEMBL_GENEID',
                                            'ENSEMBL_TRANSCRIPTID',
                                            'CANONICAL_TRANSCRIPT_EXON_NUM',
@@ -213,13 +221,6 @@ def extract_genes(
             # concatenate the dataframes
             variant_table_concat = pd.concat([variant_table,variant_table_split], axis=1)
 
-            # calculate allele frequency
-            variant_table_concat['VARIANT_FREQUENCY'] = \
-                variant_table_concat.apply(lambda row: calculate_vf(
-                    row['AD'],
-                    sep=","), axis=1
-                )
-
             # select specific columns
             variant_table_concat = variant_table_concat[SELECT_COLUMNS]
 
@@ -227,7 +228,7 @@ def extract_genes(
                 out_handle,
                 sep="\t",
                 index=0,
-                header=False
+                header=SELECT_COLUMNS
             )
 
     out_handle.close()
