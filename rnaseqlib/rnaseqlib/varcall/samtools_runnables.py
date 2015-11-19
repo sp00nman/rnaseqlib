@@ -43,3 +43,17 @@ def varcall_samtools(input_file,
                                                     input_file,
                                                     output_file)
     return cmd_samtools
+
+
+def sort_bam(inbamfile,
+             output_file):
+    """
+    Sort bamfile by name.
+    :param inbamfile: name of BAM formatted file
+    :param output_file: name of output file
+    :return: Command to be executed
+    """
+
+    cmd_sort = "samtools sort -n %s -o %s" % (inbamfile, output_file)
+
+    return cmd_sort

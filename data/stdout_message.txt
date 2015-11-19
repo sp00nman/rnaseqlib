@@ -25,3 +25,4 @@ geneanno:           Annotate variants.
 hrun:               Filtering variants in homopolymer regions.
 vcf2table:          Extract information fields to table.
 plot_matrix:        Plot patient mutation matrix.
+htseq:              Counting reads to features with htseq-count
