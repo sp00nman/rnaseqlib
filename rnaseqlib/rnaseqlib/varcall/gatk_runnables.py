@@ -350,6 +350,7 @@ def var2table_dna(input_file,
                  "-F snp129 " \
                  "-F snp142Common " \
                  "-F 1000g2015feb_all " \
+                 "-F 1000g2015feb_eur " \
                  "-F 1000g2015feb_afr " \
                  "-F 1000g2015feb_amr " \
                  "-F 1000g2015feb_eas " \
