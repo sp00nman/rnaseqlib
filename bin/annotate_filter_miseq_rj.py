@@ -139,8 +139,33 @@ if __name__ == '__main__':
                 file_prefix=project_dir + "/"
                         + args.project_name + "."
                         + uniq_sample_id,
-                file_suffix=file_ext['inhouse']
+                file_suffix=file_ext['inhouse'],
+                mode="SOMATIC"
             )
+
+    if re.search(r"process_all|clonalityXchr", args.stage):
+
+        vcfs = ts.load_tab_delimited(args.patient_vcf)
+
+        for vcf_file in vcfs:
+
+            uniq_sample_id = vcf_file[0]
+            patient_id = vcf_file[1]
+            path2vcf = vcf_file[2]
+
+            fv.filter_vcf(
+                input_file=project_dir + "/"
+                        + args.project_name + "."
+                        + uniq_sample_id + "."
+                        + "hg19_multianno.vcf",
+                file_prefix=project_dir + "/"
+                        + args.project_name + "."
+                        + uniq_sample_id,
+                file_suffix=file_ext['inhouse'],
+                mode="CLONXCHR"
+            )
+
+
 
     if re.search(r"process_all|vcf2table_proudpv", args.stage):
 
@@ -184,7 +209,7 @@ if __name__ == '__main__':
                 input_file=project_dir + "/"
                            + args.project_name + "."
                            + uniq_sample_id + "."
-                           + file_ext['proud_pv'],
+                           + file_ext['clonewars'],
                 output_file=project_dir + "/" + args.project_name + "."
                             + uniq_sample_id + "."
                             + file_ext['vcf2table'],

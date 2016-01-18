@@ -1,5 +1,6 @@
 """
-Filter vcf (vcf file needs to be ANNOVAR annotated with the following
+Filter VCF file:
+VCF file needs to be ANNOVAR annotated with the following
 databases: ensGene,snp138NonFlagged,1000g2014oct_all
 """
 
@@ -8,7 +9,8 @@ import vcf
 
 def filter_vcf(input_file,
                file_prefix,
-               file_suffix):
+               file_suffix,
+               mode):
     """
     Filter vcf with the following criteria:
     - FILTER: only keep 'PASS' annotation
@@ -24,69 +26,93 @@ def filter_vcf(input_file,
     - ncRNA_exonic
     - ncRNA_splicing
 
-    Statistics: Create table with the following information:
-    - COUNT_PASS
-    - COUNT_FS
-    - COUNT_QD
-    - COUNT_SNPCLUSTER
-    - COUNT_HRUN
-    - COUNT NHRUN
-    - COUNT_TOTAL
-    - COUNT_INDEL
-    - COUNT_SNV
-    - COUNT_EXONIC
-    - COUNT_INTRONIC
-    - COUNT_SPLICING
-    - COUNT_UTR
-    - COUNT_EXONIC_SPLICING
-    - COUNT_NON_CODING
-    - COUNT_RARE_VARIANTS
-    - COUNT_SYNONYMOUS
-
     :param input_file: Input VCF file
+    :param file_prefix: prefix of VCF file
     :param file_suffix: suffix VCF file
+    :param mode: SOMATIC(filter for somatic variants); CLONXCHR(filter for
+    polymorphisms in the X chromosome for assessment fo clonality; ALL(filter
+    for all)
     :return:None
     """
 
-    vcf_file = open(input_file, 'r')
-    stats = open(file_prefix + ".stats_variants.txt", 'w')
-    # separate tables
-    all = open(file_prefix + ".all." + file_suffix, 'w')
-    UTR = open(file_prefix + ".UTR." + file_suffix, 'w')
-    exonic_splicing = open(file_prefix + ".exonic_splicing." + file_suffix, 'w')
-    ncRNA_exonic = open(file_prefix + ".ncRNA_exonic." + file_suffix, 'w')
-    ncRNA_splicing = open(file_prefix + ".ncRNA_splicing." + file_suffix, 'w')
+    # define variables for statistic
+    # would look much nice if programmed object oriented...
+    COUNT_PASS = 0
+    COUNT_FS = 0
+    COUNT_QD = 0
+    COUNT_SNPCLUSTER = 0
+    COUNT_LOWQUAL = 0
+    COUNT_HRUN = 0
+    COUNT_NHRUN = 0
+    COUNT_NINDEL = 0
+    COUNT_TOTAL= 0
+    COUNT_INDEL = 0
+    COUNT_SNV = 0
+    COUNT_EXONIC = 0
+    COUNT_INTRONIC = 0
+    COUNT_SPLICING = 0
+    COUNT_UTR = 0
+    COUNT_EXONIC_SPLICING = 0
+    COUNT_NON_CODING = 0
+    COUNT_RARE_VARIANTS = 0
+    COUNT_SYNONYMOUS = 0
+
+    # input file
+    vcf_file = open(
+        input_file, 'r')
+
+    # output files
+    stats = open(
+        file_prefix
+        + ".stats_variants.txt", 'w')
+
+    if mode == "SOMATIC" or mode == "ALL":
+        UTR = open(
+            file_prefix
+            + ".UTR."
+            + file_suffix, 'w')
+        exonic_splicing = open(
+            file_prefix
+            + ".exonic_splicing."
+            + file_suffix, 'w')
+        ncRNA_exonic = open(
+            file_prefix
+            + ".ncRNA_exonic."
+            + file_suffix, 'w')
+        ncRNA_splicing = open(
+            file_prefix
+            + ".ncRNA_splicing."
+            + file_suffix, 'w')
+        all = open(
+            file_prefix
+            + ".all."
+            + file_suffix, 'w')
+
+    elif mode == "CLONXCHR" or mode == "ALL":
+
+        clonxchr = open(
+            file_prefix
+            + ".clonxchr."
+            + file_suffix, 'w')
+
+    else:
+        print "Unknown mode selected. Options are SOMATIC, ALL, CLONXCHR."
 
     try:
         vcf_reader = vcf.Reader(vcf_file)
-        vcf_all = vcf.Writer(all, vcf_reader)
-        vcf_UTR = vcf.Writer(UTR, vcf_reader)
-        vcf_exonic_splicing = vcf.Writer(exonic_splicing, vcf_reader)
-        vcf_ncRNA_exonic = vcf.Writer(ncRNA_exonic, vcf_reader)
-        vcf_ncRNA_splicing = vcf.Writer(ncRNA_splicing, vcf_reader)
 
+        if mode == "SOMATIC" or mode == "ALL":
+            vcf_UTR = vcf.Writer(UTR, vcf_reader)
+            vcf_exonic_splicing = vcf.Writer(exonic_splicing, vcf_reader)
+            vcf_ncRNA_exonic = vcf.Writer(ncRNA_exonic, vcf_reader)
+            vcf_ncRNA_splicing = vcf.Writer(ncRNA_splicing, vcf_reader)
+            vcf_all = vcf.Writer(all, vcf_reader)
 
-        # define variables for statistic
-        # would look much nice if programmed object oriented...
-        COUNT_PASS = 0
-        COUNT_FS = 0
-        COUNT_QD = 0
-        COUNT_SNPCLUSTER = 0
-        COUNT_LOWQUAL = 0
-        COUNT_HRUN = 0
-        COUNT_NHRUN = 0
-        COUNT_NINDEL = 0
-        COUNT_TOTAL= 0
-        COUNT_INDEL = 0
-        COUNT_SNV = 0
-        COUNT_EXONIC = 0
-        COUNT_INTRONIC = 0
-        COUNT_SPLICING = 0
-        COUNT_UTR = 0
-        COUNT_EXONIC_SPLICING = 0
-        COUNT_NON_CODING = 0
-        COUNT_RARE_VARIANTS = 0
-        COUNT_SYNONYMOUS = 0
+        elif mode == "CLONXCHR" or mode == "ALL":
+            vcf_clonxchr = vcf.Writer(clonxchr, vcf_reader)
+
+        else:
+            print "Unknown mode selected. Options are SOMATIC, ALL, CLONXCHR."
 
         for record in vcf_reader:
 
@@ -135,79 +161,118 @@ def filter_vcf(input_file,
                 if info == "synonymous_SNV":
                     COUNT_SYNONYMOUS += 1
 
-            # filter variants
-            # for some odd reason is [None] doesn't work, is that
-            # an empty list ?
-            if not record.FILTER \
-                    and record.INFO['snp142Common'] == [None] \
-                    and record.INFO['1000g2015feb_all'] < 0.01 \
-                    and record.INFO['esp5400_all'] < 0.01 \
-                    and record.INFO['esp6500siv2_all'] < 0.01 \
-                    and record.INFO['ExonicFunc.ensGene'][0] \
-                            != "synonymous_SNV":
+            if mode == "SOMATIC" or mode == "ALL":
 
-                COUNT_RARE_VARIANTS += 1
-                vcf_all.write_record(record)
+                # for some odd reason is [None] doesn't work, is that
+                # an empty list ?
+                # if not record.FILTER keeps only PASS variants
+                if not record.FILTER \
+                        and record.INFO['snp142Common'] == [None] \
+                        and record.INFO['1000g2015feb_all'] < 0.01 \
+                        and record.INFO['esp5400_all'] < 0.01 \
+                        and record.INFO['esp6500siv2_all'] < 0.01 \
+                        and record.INFO['ExonicFunc.ensGene'][0] \
+                                != "synonymous_SNV":
 
-                for info in record.INFO['Func.ensGene']:
-                    if info == "exonic" or info == "splicing" or info == "exonic;splicing":
-                        vcf_exonic_splicing.write_record(record)
-                    if info == "UTR3" or info == "UTR5":
-                        vcf_UTR.write_record(record)
-                    if info == "ncRNA_exonic" :
-                        vcf_ncRNA_exonic.write_record(record)
-                    if info == "ncRNA_splicing":
-                        vcf_ncRNA_splicing.write_record(record)
+                    # split records into separate files
+                    for info in record.INFO['Func.ensGene']:
+                        if info == "exonic" or info == "splicing" \
+                                or info == "exonic;splicing":
+                            vcf_exonic_splicing.write_record(record)
+                        if info == "UTR3" or info == "UTR5":
+                            vcf_UTR.write_record(record)
+                        if info == "ncRNA_exonic" :
+                            vcf_ncRNA_exonic.write_record(record)
+                        if info == "ncRNA_splicing":
+                            vcf_ncRNA_splicing.write_record(record)
+
+                    # write all records for SOMATIC
+                    vcf_all.write_record(record)
+
+                    COUNT_RARE_VARIANTS += 1
+
+            elif mode == "CLONXCHR" or mode == "ALL":
+                if not record.FILTER and record.is_snp and record.CHROM == "X":
+                    # sorting exonic regions will be done
+                    for info in record.INFO['Func.ensGene']:
+                        if info == "exonic" \
+                                or info == "splicing" \
+                                or info =="exonic;splicing" \
+                                or info == "UTR3" \
+                                or info=="UTR5" \
+                                or info == "ncRNA_exonic" \
+                                or info == "ncRNA_splicing":
+                            vcf_clonxchr.write_record(record)
+
+            else:
+                print "Unknown mode selected. Options are SOMATIC, ALL, CLONXCHR."
 
         # write statistics to file
-        text = "SAMPLE_NAME"                    + "\t" \
-                + "COUNT_PASS"                  + "\t" \
-                + "COUNT_FS"                    + "\t" \
-                + "COUNT_QD"                    + "\t" \
-                + "COUNT_SNPCLUSTER"            + "\t" \
-                + "COUNT_LOWQUAL"               + "\t" \
-                + "COUNT_HRUN"                  + "\t" \
-                + "COUNT_NHRUN"                 + "\t" \
-                + "COUNT_NINDEL"                + "\t" \
-                + "COUNT_TOTAL"                 + "\t" \
-                + "COUNT_INDEL"                 + "\t" \
-                + "COUNT_SNV"                   + "\t" \
-                + "COUNT_EXONIC"                + "\t" \
-                + "COUNT_INTRONIC"              + "\t" \
-                + "COUNT_SPLICING"              + "\t" \
-                + "COUNT_UTR"                   + "\t" \
-                + "COUNT_EXONIC_SPLICING"       + "\t" \
-                + "COUNT_NON_CODING"            + "\t" \
-                + "COUNT_RARE_VARIANTS"         + "\t" \
-                + "COUNT_SYNONYMOUS"            + "\n" \
-                + file_prefix                   + "\t" \
-                + str(COUNT_PASS)               + "\t" \
-                + str(COUNT_FS)                 + "\t" \
-                + str(COUNT_QD)                 + "\t" \
-                + str(COUNT_SNPCLUSTER)         + "\t" \
-                + str(COUNT_LOWQUAL)            + "\t" \
-                + str(COUNT_HRUN)               + "\t" \
-                + str(COUNT_NHRUN)              + "\t" \
-                + str(COUNT_NINDEL)             + "\t" \
-                + str(COUNT_TOTAL)              + "\t" \
-                + str(COUNT_INDEL)              + "\t" \
-                + str(COUNT_SNV)                + "\t" \
-                + str(COUNT_EXONIC)             + "\t" \
-                + str(COUNT_INTRONIC)           + "\t" \
-                + str(COUNT_SPLICING)           + "\t" \
-                + str(COUNT_UTR)                + "\t" \
-                + str(COUNT_EXONIC_SPLICING)    + "\t" \
-                + str(COUNT_NON_CODING)         + "\t" \
-                + str(COUNT_RARE_VARIANTS)      + "\t" \
-                + str(COUNT_SYNONYMOUS)
+        STATS_COLUMNNAMES = [
+            "SAMPLE_NAME",
+            "COUNT_PASS",
+            "COUNT_FS",
+            "COUNT_QD" ,
+            "COUNT_SNPCLUSTER",
+            "COUNT_LOWQUAL" ,
+            "COUNT_HRUN",
+            "COUNT_NHRUN",
+            "COUNT_NINDEL",
+            "COUNT_SNV",
+            "COUNT_EXONIC",
+            "COUNT_INTRONIC",
+            "COUNT_SPLICING",
+            "COUNT_UTR",
+            "COUNT_EXONIC_SPLICING",
+            "COUNT_NON_CODING",
+            "COUNT_RARE_VARIANTS",
+            "COUNT_SYNONYMOUS"
+        ]
 
-        stats.write(text)
+        STATS_VARIABLES = [
+            file_prefix,
+            str(COUNT_PASS),
+            str(COUNT_FS),
+            str(COUNT_QD),
+            str(COUNT_SNPCLUSTER),
+            str(COUNT_LOWQUAL),
+            str(COUNT_HRUN),
+            str(COUNT_NHRUN),
+            str(COUNT_NINDEL),
+            str(COUNT_TOTAL),
+            str(COUNT_INDEL),
+            str(COUNT_SNV),
+            str(COUNT_EXONIC),
+            str(COUNT_INTRONIC),
+            str(COUNT_SPLICING),
+            str(COUNT_UTR),
+            str(COUNT_EXONIC_SPLICING),
+            str(COUNT_NON_CODING),
+            str(COUNT_RARE_VARIANTS),
+            str(COUNT_SYNONYMOUS)
+        ]
+
+        STATS = '\t'.join(STATS_COLUMNNAMES) \
+                + "\n" \
+                + '\t'.join(STATS_VARIABLES)
+
+        stats.write(STATS)
 
     finally:
         vcf_file.close()
-        all.close()
-        exonic_splicing.close()
-        UTR.close()
         stats.close()
+
+        if mode == "SOMATIC" or mode == "ALL":
+            all.close()
+            exonic_splicing.close()
+            UTR.close()
+            vcf_ncRNA_exonic.close()
+            vcf_ncRNA_splicing.close()
+
+        elif mode == "CLONXCHR" or mode == "ALL":
+            vcf_clonxchr.close()
+
+        else:
+            print "Unknown mode selected. Options are SOMATIC, ALL, CLONXCHR."
 
     return None
