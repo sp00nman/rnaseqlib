@@ -22,7 +22,8 @@ if __name__ == '__main__':
     parser.add_argument('--stage', dest='stage', required=False,
                         help='Limit job submission to a particular '
                              'analysis stage.[process_all,annovar,selection,'
-                             'vcf2table]')
+                             'clonalityXchr, vcf2table_rj,'
+                             'vcf2table_dna, reformat_rj]')
     parser.add_argument('--project_name', required=False, type=str,
                         help="name of the project")
     parser.add_argument('--patient_vcf', required=False, type=str,
@@ -173,7 +174,7 @@ if __name__ == '__main__':
             )
 
 
-    if re.search(r"process_all|vcf2table_proudpv", args.stage):
+    if re.search(r"process_all|vcf2table_rj", args.stage):
 
         vcfs = ts.load_tab_delimited(args.patient_vcf)
 
@@ -428,7 +429,7 @@ if __name__ == '__main__':
             out_handle.close()
 
 
-    if re.search(r"process_all|reformat_proudpv_rj", args.stage):
+    if re.search(r"process_all|reformat_rj", args.stage):
 
         canonical_transcripts = ts.load_dictionary(
             args.canonical_transcripts,
