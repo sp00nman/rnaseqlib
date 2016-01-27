@@ -4,11 +4,14 @@ import argparse
 import re
 import os
 import logging
+import pandas as pd
 
 from rnaseqlib.utils import tools as ts
 from rnaseqlib.varcall import annovar_runnables as annovar_rb
 from rnaseqlib.varcall import gatk_runnables as gatk
 from rnaseqlib.varcall import filter_vcf as fv
+from rnaseqlib.utils import convert_gene_ids as cv
+from rnaseqlib.varcall import extract_genes_of_interest as goi
 
 
 if __name__ == '__main__':
@@ -32,6 +35,10 @@ if __name__ == '__main__':
     # resources
     parser.add_argument('--ref_genome', required=False, type=str,
                         help='Reference genome.')
+    parser.add_argument('--id_conversion', required=False, type=str,
+                        help='Conversion table. Ensembl ids to genesymbols')
+    parser.add_argument('--canonical_transcripts', required=False, type=str,
+                        help='Select canonical transcript.')
 
     # annovar specific options
     parser.add_argument('--annovar', required=False, type=str,
@@ -166,7 +173,6 @@ if __name__ == '__main__':
             )
 
 
-
     if re.search(r"process_all|vcf2table_proudpv", args.stage):
 
         vcfs = ts.load_tab_delimited(args.patient_vcf)
@@ -179,9 +185,9 @@ if __name__ == '__main__':
 
             cmd = gatk.var2table_proudpv(
                 input_file=project_dir + "/"
-                        + args.project_name + "."
-                        + uniq_sample_id + "."
-                        + file_ext['proud_pv'],
+                           + args.project_name + "."
+                           + uniq_sample_id + "."
+                           + file_ext['proud_pv'],
                 output_file=project_dir + "/" + args.project_name + "."
                             + uniq_sample_id + "."
                             + file_ext['vcf2table'],
@@ -222,3 +228,271 @@ if __name__ == '__main__':
                 command=cmd,
                 debug=args.debug
             )
+
+    if re.search(r"process_all|reformatXchr", args.stage):
+
+        VCF_TABLE = \
+            ["CHROM",
+             "POS",
+             "ID",
+             "REF",
+             "ALT",
+             "SNPEFF_GENE_NAME",
+             "Gene.ensGene",
+             "SNPEFF_GENE_BIOTYPE",
+             "Func.ensGen",
+             "ExonicFunc.ensGene",
+             "AAChange.ensGene",
+             "QUAL",
+             "QD",
+             "VQSLOD",
+             "cytoBand",
+             "genomicSuperDups",
+             "snp129",
+             "snp142Common",
+             "1000g2015feb_all",
+             "1000g2015feb_eur",
+             "1000g2015feb_afr",
+             "1000g2015feb_amr",
+             "1000g2015feb_eas",
+             "1000g2015feb_sas",
+             "esp5400_all",
+             "esp6500siv2_all",
+             "cosmic70",
+             "clinvar_20150330",
+             "SIFT_score",
+             "SIFT_pred",
+             "Polyphen2_HDIV_score",
+             "Polyphen2_HDIV_pred",
+             "Polyphen2_HVAR_score",
+             "Polyphen2_HVAR_pred",
+             "LRT_score",
+             "LRT_pred",
+             "MutationTaster_score",
+             "MutationTaster_pred",
+             "FATHMM_score",
+             "FATHMM_pred",
+             "RadialSVM_score",
+             "RadialSVM_pred",
+             "LR_score",
+             "LR_pred",
+             "VEST3_score",
+             "CADD_raw",
+             "CADD_phred",
+             "GERP++_RS",
+             "phyloP46way_placental",
+             "phyloP100way_vertebrate",
+             "SiPhy_29way_logOdds",
+             "caddgt10",
+             "CADDindel",
+             "CADDindel_Phred",
+             "GT",
+             "AD",
+             "DP",
+             "GQ",
+             "PL"]
+
+        SELECT_COLUMNS = \
+            ["UNIQ_SAMPLE_ID",
+             "CHROM",
+             "POS",
+             "ID",
+             "REF",
+             "ALT",
+             "GT",
+             "AD",
+             "DP",
+             "GQ",
+             "PL",
+             "GENESYMBOL",
+             "ENSEMBL_GENEID",
+             "ENSEMBL_TRANSCRIPTID",
+             "Func.ensGen",
+             "ExonicFunc.ensGene",
+             "QUAL",
+             "QD",
+             "CANONICAL_TRANSCRIPT_EXON_NUM",
+             "CANONICAL_TRANSCRIPT_NUCLEOTIDE_CHANGE",
+             "CANONICAL_TRANSCRIPT_AS_CHANGE",
+             "cytoBand",
+             "genomicSuperDups",
+             "snp129",
+             "snp142Common",
+             "1000g2015feb_all",
+             "1000g2015feb_eur",
+             "1000g2015feb_afr",
+             "1000g2015feb_amr",
+             "1000g2015feb_eas",
+             "1000g2015feb_sas",
+             "esp5400_all",
+             "esp6500siv2_all",
+             "cosmic70",
+             "clinvar_20150330",
+             "SIFT_score",
+             "SIFT_pred",
+             "Polyphen2_HDIV_score",
+             "Polyphen2_HDIV_pred",
+             "Polyphen2_HVAR_score",
+             "Polyphen2_HVAR_pred",
+             "LRT_score",
+             "LRT_pred",
+             "MutationTaster_score",
+             "MutationTaster_pred",
+             "FATHMM_score",
+             "FATHMM_pred",
+             "RadialSVM_score",
+             "RadialSVM_pred",
+             "LR_score",
+             "LR_pred",
+             "VEST3_score",
+             "CADD_raw",
+             "CADD_phred",
+             "GERP++_RS",
+             "phyloP46way_placental",
+             "phyloP100way_vertebrate",
+             "SiPhy_29way_logOdds",
+             "caddgt10",
+             "CADDindel",
+             "CADDindel_Phred",
+            ]
+
+        vcfs = ts.load_tab_delimited(args.patient_vcf)
+        canonical_transcripts = ts.load_dictionary(
+            args.canonical_transcripts,
+            sep="\t")
+
+        for vcf_file in vcfs:
+
+            uniq_sample_id = vcf_file[0]
+            patient_id = vcf_file[1]
+
+            # set header to index 0 or 1
+            variant_table = pd.read_csv(
+                project_dir + "/" + args.project_name + "."
+                + uniq_sample_id + ".vcf2table.txt",
+                sep="\t",
+                names=VCF_TABLE,
+                header=True
+            )
+
+            # add patient information
+            variant_table['UNIQ_SAMPLE_ID'] = uniq_sample_id
+
+            # convert gene ids
+            key_file = cv.read_ensgene_genesymb(args.id_conversion)
+            ensids = list(variant_table['Gene.ensGene'])
+            genesymbols = []
+            for ensid in ensids:
+                genesymbol = cv.ensgene2genesymbol(key_file, ensid)
+                genesymbols.append(genesymbol)
+
+            # add column
+            variant_table['GENESYMBOL'] = genesymbols
+
+            # only select canonical transcript
+            variant_table['CANONICAL_TRANSCRIPT_AAChange'] = \
+                variant_table.apply(lambda row: goi.select_canonical_transcript(
+                    row['AAChange.ensGene'],
+                    canonical_transcripts=canonical_transcripts,
+                    sep=","), axis=1
+                )
+
+            # split AAChange_ensGene by ':'
+            variant_table_split = variant_table[
+                'CANONICAL_TRANSCRIPT_AAChange'].apply(lambda row: pd.Series(row.split(':')))
+            # rename columns
+            variant_table_split.columns = [
+                'ENSEMBL_GENEID',
+                'ENSEMBL_TRANSCRIPTID',
+                'CANONICAL_TRANSCRIPT_EXON_NUM',
+                'CANONICAL_TRANSCRIPT_NUCLEOTIDE_CHANGE',
+                'CANONICAL_TRANSCRIPT_AS_CHANGE']
+
+            # concatenate the dataframes
+            variant_table_concat = pd.concat(
+                [variant_table,variant_table_split], axis=1)
+
+            # select specific columns
+            variant_table_concat = variant_table_concat[SELECT_COLUMNS]
+
+            output_file = project_dir + "/" + args.project_name + "." \
+                          + uniq_sample_id + ".variant_table.txt"
+
+            out_handle = open(output_file, 'w')
+            variant_table_concat.to_csv(
+                out_handle,
+                sep="\t",
+                index=0,
+                header=True
+            )
+            out_handle.close()
+
+
+    if re.search(r"process_all|reformat_proudpv_rj", args.stage):
+
+        canonical_transcripts = ts.load_dictionary(
+            args.canonical_transcripts,
+             sep="\t")
+
+        vcfs = ts.load_tab_delimited(args.patient_vcf)
+
+        for vcf_file in vcfs:
+            print vcf_file
+            uniq_sample_id = vcf_file[0]
+
+            # set header to index 0 or 1
+            variant_table = pd.read_csv(
+                project_dir + "/" + args.project_name + "."
+                + uniq_sample_id + ".vcf2table.txt",
+                sep="\t"
+            )
+
+            # add patient information
+            variant_table['UNIQ_SAMPLE_ID'] = uniq_sample_id
+
+            # convert gene ids
+            key_file = cv.read_ensgene_genesymb(args.id_conversion)
+            ensids = list(variant_table['Gene.ensGene'])
+            genesymbols = []
+            for ensid in ensids:
+                genesymbol = cv.ensgene2genesymbol(key_file, ensid)
+                genesymbols.append(genesymbol)
+
+            # add column
+            variant_table['GENESYMBOL'] = genesymbols
+
+            if not variant_table.empty:
+
+                # only select canonical transcript
+                variant_table['CANONICAL_TRANSCRIPT_AAChange'] = \
+                    variant_table.apply(lambda row: goi.select_canonical_transcript(
+                        row['AAChange.ensGene'],
+                        canonical_transcripts=canonical_transcripts,
+                        sep=","), axis=1
+                    )
+
+                # split AAChange_ensGene by ':'
+                variant_table_split = variant_table[
+                    'CANONICAL_TRANSCRIPT_AAChange'].apply(lambda row: pd.Series(row.split(':')))
+                # rename columns
+                variant_table_split.columns = ['ENSEMBL_GENEID',
+                                               'ENSEMBL_TRANSCRIPTID',
+                                               'CANONICAL_TRANSCRIPT_EXON_NUM',
+                                               'CANONICAL_TRANSCRIPT_NUCLEOTIDE_CHANGE',
+                                               'CANONICAL_TRANSCRIPT_AS_CHANGE']
+
+                # concatenate the dataframes
+                variant_table_concat = pd.concat([variant_table,variant_table_split], axis=1)
+
+
+            output_file = project_dir + "/" + args.project_name + "." \
+                          + uniq_sample_id + ".variant_table.txt"
+
+            out_handle = open(output_file, 'w')
+            variant_table.to_csv(
+                out_handle,
+                sep="\t",
+                index=0,
+                header=True
+            )
+            out_handle.close()

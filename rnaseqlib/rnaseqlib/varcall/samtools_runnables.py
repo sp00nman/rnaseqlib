@@ -23,7 +23,7 @@ def index_bam(inbamfile):
     :return: Command to be executed; type str
     """
 
-    cmd_index_bam = "samtools index %s" % (inbamfile)
+    cmd_index_bam = "samtools index %s " % (inbamfile)
 
     return cmd_index_bam
 
@@ -54,6 +54,6 @@ def sort_bam(inbamfile,
     :return: Command to be executed
     """
 
-    cmd_sort = "samtools sort -n %s -o %s" % (inbamfile, output_file)
+    cmd_sort = "samtools sort -n %s %s " % (inbamfile, output_file)
 
     return cmd_sort

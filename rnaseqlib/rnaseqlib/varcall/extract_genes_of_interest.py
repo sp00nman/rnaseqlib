@@ -212,11 +212,12 @@ def extract_genes(
             variant_table_split = variant_table[
                 'CANONICAL_TRANSCRIPT_AAChange'].apply(lambda row: pd.Series(row.split(':')))
             # rename columns
-            variant_table_split.columns = ['ENSEMBL_GENEID',
-                                           'ENSEMBL_TRANSCRIPTID',
-                                           'CANONICAL_TRANSCRIPT_EXON_NUM',
-                                           'CANONICAL_TRANSCRIPT_NUCLEOTIDE_CHANGE',
-                                           'CANONICAL_TRANSCRIPT_AS_CHANGE']
+            variant_table_split.columns = [
+                'ENSEMBL_GENEID',
+                'ENSEMBL_TRANSCRIPTID',
+                'CANONICAL_TRANSCRIPT_EXON_NUM',
+                'CANONICAL_TRANSCRIPT_NUCLEOTIDE_CHANGE',
+                'CANONICAL_TRANSCRIPT_AS_CHANGE']
 
             # concatenate the dataframes
             variant_table_concat = pd.concat([variant_table,variant_table_split], axis=1)

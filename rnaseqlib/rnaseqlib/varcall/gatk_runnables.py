@@ -407,6 +407,7 @@ def var2table_proudpv(input_file,
                  "-T VariantsToTable " \
                  "-V %s " \
                  "-F CSQT " \
+                 "-F Func.ensGene " \
                  "-F ExonicFunc.ensGene " \
                  "-F CHROM " \
                  "-F POS " \
@@ -417,7 +418,6 @@ def var2table_proudpv(input_file,
                  "-GF GQ " \
                  "-GF AD " \
                  "-GF VF " \
-                 "-F ExonicFunc.ensGene " \
                  "-F Gene.ensGene " \
                  "-F cosmic70 " \
                  "-F SIFT_score " \
