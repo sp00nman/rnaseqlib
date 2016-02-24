@@ -73,7 +73,8 @@ def select_canonical_transcript(
         canonical_transcripts,
         sep=","):
     """
-    Extract from all transcript the canonical transcript
+    Extract from all transcript the canonical transcript. Does not take into
+    account overlapping genes
     :param row: for each row in variant_table
     :param canonical_transcripts: a dictionary with key=ensgeneid and
     value=transcriptid
@@ -84,21 +85,32 @@ def select_canonical_transcript(
     transcripts = row.split(sep)
 
     # if no canonical transcript is found, take the first...
-    cano_trans = transcripts[0]
+    canonical_transcript = transcripts[0]
+    # variable is_canonical_transcript (Y - YES , N - NO, U - UNKNOWN,
+    # E - ensembl gene id was not found )
+    is_canonical_transcript = "N"
 
     for transcript in transcripts:
+
         if transcript == "UNKNOWN":
-            cano_trans = transcript
+            canonical_transcript = transcript
+            is_canonical_transcript = "U"
+
         else:
             fields = transcript.split(":")
 
+            # is ensgeneid in canonical_transcripts database
             if fields[0] in canonical_transcripts:
+
                 if fields[1] == canonical_transcripts[fields[0]]:
-                 cano_trans = transcript
+                    canonical_transcript = transcript
+                    is_canonical_transcript = "Y"
+
             else:
-                # keep gene_symbol if nothing was found
-                cano_trans = transcript
-    return cano_trans
+                # ensgeneid was not found, stay with the first transcript
+                is_canonical_transcript = "E"
+
+    return canonical_transcript, is_canonical_transcript
 
 
 def calculate_vf(
