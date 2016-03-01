@@ -10,7 +10,8 @@ import vcf
 def filter_vcf(input_file,
                file_prefix,
                file_suffix,
-               mode):
+               mode,
+               ensids=[]):
     """
     Filter vcf with the following criteria:
     - FILTER: only keep 'PASS' annotation
@@ -95,6 +96,13 @@ def filter_vcf(input_file,
             + ".clonxchr."
             + file_suffix, 'w')
 
+    elif mode == "MAE" or mode =="ALL":
+
+        mae = open(
+            file_prefix
+            + ".mae."
+            + file_suffix, 'w')
+
     else:
         print "Unknown mode selected. Options are SOMATIC, ALL, CLONXCHR."
 
@@ -108,11 +116,16 @@ def filter_vcf(input_file,
             vcf_ncRNA_splicing = vcf.Writer(ncRNA_splicing, vcf_reader)
             vcf_all = vcf.Writer(all, vcf_reader)
 
-        elif mode == "CLONXCHR" or mode == "ALL":
+        if mode == "CLONXCHR" or mode == "ALL":
             vcf_clonxchr = vcf.Writer(clonxchr, vcf_reader)
 
+        if mode == "MAE" or mode == "ALL":
+            print "yea"
+            vcf_mae = vcf.Writer(mae, vcf_reader)
+
         else:
-            print "Unknown mode selected. Options are SOMATIC, ALL, CLONXCHR."
+            print "VCF file could not be created. Unknown mode selected. " \
+                  "Options are SOMATIC, ALL, MAE or CLONXCHR."
 
         for record in vcf_reader:
 
@@ -191,21 +204,37 @@ def filter_vcf(input_file,
 
                     COUNT_RARE_VARIANTS += 1
 
-            elif mode == "CLONXCHR" or mode == "ALL":
+            if mode == "CLONXCHR" or mode == "ALL":
                 if not record.FILTER and record.is_snp and record.CHROM == "X":
                     # sorting exonic regions will be done
                     for info in record.INFO['Func.ensGene']:
                         if info == "exonic" \
                                 or info == "splicing" \
-                                or info =="exonic;splicing" \
+                                or info == "exonic;splicing" \
                                 or info == "UTR3" \
-                                or info=="UTR5" \
+                                or info == "UTR5" \
                                 or info == "ncRNA_exonic" \
                                 or info == "ncRNA_splicing":
                             vcf_clonxchr.write_record(record)
 
+            if mode == "MAE":
+                #print record.INFO['Gene.ensGene']
+                if not record.FILTER and record.is_snp and not record.CHROM == "X":
+                    if record.INFO['Gene.ensGene'][0] in list(ensids):
+                        for info in record.INFO['Func.ensGene']:
+                            if info == "exonic" \
+                                or info == "splicing" \
+                                or info == "exonic;splicing" \
+                                or info == "UTR3" \
+                                or info == "UTR5" \
+                                or info == "ncRNA_exonic" \
+                                or info == "ncRNA_splicing":
+
+                                vcf_mae.write_record(record)
+
             else:
-                print "Unknown mode selected. Options are SOMATIC, ALL, CLONXCHR."
+                print "Unknown mode selected. Options are " \
+                      "SOMATIC, ALL, CLONXCHR or MAE."
 
         # write statistics to file
         STATS_COLUMNNAMES = [
@@ -271,6 +300,9 @@ def filter_vcf(input_file,
 
         elif mode == "CLONXCHR" or mode == "ALL":
             vcf_clonxchr.close()
+
+        elif mode == "mae" or mode == "ALL":
+            vcf_mae.close()
 
         else:
             print "Unknown mode selected. Options are SOMATIC, ALL, CLONXCHR."

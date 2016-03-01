@@ -166,6 +166,9 @@ if __name__ == '__main__':
                         help='Conversion table. Ensembl ids to genesymbols')
     parser.add_argument('--canonical_transcripts', required=False, type=str,
                         help='Select canonical transcript.')
+    parser.add_argument('--mae_genes', required=False, type=str,
+                        help='Table of monoallelic expressed genes based on'
+                             'a study by Savova et al., Nature Genetics, 2015')
 
     # annovar specific options
     parser.add_argument('--annovar', required=False, type=str,
@@ -299,6 +302,31 @@ if __name__ == '__main__':
                 mode="CLONXCHR"
             )
 
+    if re.search(r"process_all|mae_autosomes", args.stage):
+
+        vcfs = ts.load_tab_delimited(args.patient_vcf)
+
+        for vcf_file in vcfs:
+
+            uniq_sample_id = vcf_file[0]
+            patient_id = vcf_file[1]
+            path2vcf = vcf_file[2]
+
+            print uniq_sample_id
+
+            fv.filter_vcf(
+                input_file=project_dir + "/"
+                        + args.project_name + "."
+                        + uniq_sample_id + "."
+                        + "hg19_multianno.vcf",
+                file_prefix=project_dir + "/"
+                        + args.project_name + "."
+                        + uniq_sample_id,
+                file_suffix=file_ext['inhouse'],
+                mode="MAE",
+                ensids=ts.load_mae_genes(args.mae_genes)
+            )
+
     if re.search(r"process_all|vcf2table_rj", args.stage):
 
         vcfs = ts.load_tab_delimited(args.patient_vcf)
@@ -343,11 +371,17 @@ if __name__ == '__main__':
             #    + uniq_sample_id + "."
             #    + file_ext['clonewars']
 
+            # normally
+            # input_file=project_dir + "/"
+            #+ args.project_name + "."
+            # + uniq_sample_id + "."
+            #+ file_ext['proud_pv'],
+
             cmd = gatk.var2table_dna(
                 input_file=project_dir + "/"
                            + args.project_name + "."
                            + uniq_sample_id + "."
-                           + file_ext['proud_pv'],
+                           + file_ext['mae'],
                 output_file=project_dir + "/" + args.project_name + "."
                             + uniq_sample_id + "."
                             + file_ext['vcf2table'],
@@ -508,6 +542,7 @@ if __name__ == '__main__':
 
             out_handle = open(output_file, 'w')
 
+            # TODO: variable can not be defined if variant_table is empty
             variant_table_concat.to_csv(
                 out_handle,
                 sep="\t",

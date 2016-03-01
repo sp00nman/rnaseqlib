@@ -5,6 +5,7 @@ Collections of utility functions.
 import logging
 from os import (system, remove, mkdir)
 from os.path import (split, splitext, join, exists)
+import pandas as pd
 
 
 def run_cmd(
@@ -107,3 +108,19 @@ def load_tab_delimited(input_file,
         file_handle.close()
 
     return lines
+
+
+def load_mae_genes(input_file,
+                   rpkm=0):
+    """
+
+    :param input_file: table with monoallelic & biallelic expressed genes of
+    the following format (tab separated): Gene MAE=1_BAE=0 RPKM Ensemble ID
+    :param rpkm:threshold for expression in rpkm
+    :return: pandas series of monoallelic expressed genes (ensids)
+    """
+
+    mae_bae = pd.read_csv(input_file, sep="\t", header=0)
+    filt = mae_bae[(mae_bae['MAE=1_BAE=0']==1) & (mae_bae['RPKM']>rpkm)]
+
+    return filt['Ensemble ID']
