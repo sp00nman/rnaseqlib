@@ -2,47 +2,36 @@
 All relevant function to annotate fusions
 """
 
+from rnaseqlib.utils import convert_gene_ids as cv
 
-def get_map_genes(refseqid_ensemblid, ensgene_genesymb,
-                  line, options, col_num_gene1, col_num_gene2):
 
-    if options.tool == 'defuse':
-        a = line[col_num_gene1[options.tool]]
-        b = line[col_num_gene2[options.tool]]
+def map_genes(conversion_table,
+              gene_a,
+              gene_b):
 
-    elif options.tool == 'fusionmap':
-        print line
-        a = loop_fusionmap_refseqids(refseqid_ensemblid, line,
-                                     options, col_num_gene1)
-        b = loop_fusionmap_refseqids(refseqid_ensemblid, line,
-                                     options, col_num_gene2)
-
-    else:  # tophat-fusion
-        a = genesymb_to_ensgene(ensgene_genesymb,
-                                line[col_num_gene1[options.tool]])
-        b = genesymb_to_ensgene(ensgene_genesymb,
-                                line[col_num_gene2[options.tool]])
+    a = cv.ensgene2genesymbol(conversion_table, gene_a)
+    b = cv.ensgene2genesymbol(conversion_table, gene_b)
 
     return a, b
 
 
-
-def filter_gene_pair(gene_A,
-                     gene_B,
-                     gene_pairs):
+def filter_gene_pair(gene_a,
+                     gene_b,
+                     conversion_table,
+                     gene_pairs,
+                     tool):
     """
     for each fusion it returns gene A & B
-    :param gene_A:
-    :param gene_B:
+    :param gene_A: upstream gene involved in fusion
+    :param gene_B: downstream gene involved in fusion
     :param gene_pairs
     :return:1 present 0 absent
     """
 
-    (a, b) = get_map_genes(refseqid_ensemblid,
-                           ensemblid,
-                           gene_A,
-                           gene_B)
+    if tool == "tophatfusion" or tool == "soapfuse":
+        (gene_a, gene_b) = map_genes(conversion_table, gene_a, gene_b)
 
-    g = '\t'.join(sorted([a, b]))
+    g = '\t'.join(sorted([gene_a, gene_b]))
+    print g
 
     return "1" if g in gene_pairs else 0

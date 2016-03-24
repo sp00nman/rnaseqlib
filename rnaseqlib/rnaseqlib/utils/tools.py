@@ -5,7 +5,6 @@ Collections of utility functions.
 import logging
 from os import (system, remove, mkdir)
 from os.path import (split, splitext, join, exists)
-import pandas as pd
 
 
 def run_cmd(
@@ -120,7 +119,33 @@ def load_mae_genes(input_file,
     :return: pandas series of monoallelic expressed genes (ensids)
     """
 
+    # had to move padas import in order to avoid issues with reseqc...such
+    # a shitty program
+    import pandas as pd
+
     mae_bae = pd.read_csv(input_file, sep="\t", header=0)
     filt = mae_bae[(mae_bae['MAE=1_BAE=0']==1) & (mae_bae['RPKM']>rpkm)]
 
     return filt['Ensemble ID']
+
+
+def load_sorted(filename):
+    """
+    Reads in all files for filtering fusion pairs
+    :param filename:
+    :return:
+    """
+    file_obj = open(filename, 'r')
+    try:
+        all_content = ['\t'.join(sorted(line.rstrip('\n').split('\t')[:2]))
+                       for line in file(filename, 'r')]
+    finally:
+        file_obj.close()
+    return set(all_content)
+
+
+def read_annotation_file(filename):
+    """
+    gene pairs: eg. ENSG....\tENSG....
+    """
+    return load_sorted(filename)

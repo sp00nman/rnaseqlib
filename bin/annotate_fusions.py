@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -17,6 +17,7 @@ import pandas as pd
 from rnaseqlib.utils import tools as ts
 from rnaseqlib.dragonball import load_fusion_output_files as loadfuse
 from rnaseqlib.dragonball import match_fusions as matchf
+from rnaseqlib.utils import convert_gene_ids as cv
 
 
 if __name__ == '__main__':
@@ -36,7 +37,10 @@ if __name__ == '__main__':
              "database[see github] /path/to/annotation_file [pairs(A_B)/individual(A,B) [annotate/filter]")
     parser.add_argument(
         '--output_dir', required=False, type=str,
-        hep="Path to output directory.")
+        help="Path to output directory.")
+    parser.add_argument(
+        '--id_conversion', required=False, type=str,
+        help='Conversion table. Ensembl ids to genesymbols')
 
     # hardware specific options
     parser.add_argument(
@@ -60,7 +64,7 @@ if __name__ == '__main__':
     )
 
     # start analysis workflow & logging
-    logging.info("Run quality measures on RNA-seq BAM files.")
+    logging.info("Annotate fusions from fusion tools for RNA-seq.")
 
     fusion_files = ts.load_tab_delimited(args.input_file)
     annotation = pd.read_csv(args.annotation_file, sep="\t")
@@ -73,18 +77,25 @@ if __name__ == '__main__':
     samples = pd.read_csv(
         args.input_file,
         sep="\t",
-        names=["tool", "path"])
+        names=["uniq_sample_id", "tool", "path"])
+
+    # load resources
+    ens2gs_conversion_table = cv.read_ensgene_genesymb(
+        args.id_conversion
+    )
 
     for sample in samples.iterrows():
 
         sample_sr = pd.Series(sample)
+        sample = sample_sr.get(1)['uniq_sample_id']
         tool = sample_sr.get(1)['tool']
         path_sample = sample_sr.get(1)['path']
 
         fusions = loadfuse.load_fusion(path_sample, tool)
 
+        type(annotation)
+        
         for annotation in annotation.iterrows():
-
             # for each annotation...
             annotation_sr = pd.Series(annotation)
             label = annotation_sr.get(1)['label']
@@ -94,14 +105,43 @@ if __name__ == '__main__':
             filter_annotate = annotation_sr.get(1)['filter_annotate']
             file_location = annotation_sr.get(1)['file_location']
 
-            if pair_single_distance is "pair":
-                fusions[annotation_sr] = fusions.apply(
+            #prints
+            print label
+            print gene_position
+            print pair_single_distance
+            print source
+            print file_location
+            print filter_annotate
+            label_name = label + "_" + source
+            # read in annotation file
+            annotation_dta = ts.read_annotation_file(file_location)
+
+            if pair_single_distance == "pair":
+                print "true"
+                fusions[label_name] = fusions.apply(
                     lambda row: matchf.filter_gene_pair(
                         row['gene_A'],
-                        row['gene_B']
+                        row['gene_B'],
+                        ens2gs_conversion_table,
+                        annotation_dta,
+                        tool
                     ),
                     axis=1
                 )
 
+        output_file = project_dir + "/" \
+                      + args.project_name + "." \
+                      + sample + "_" \
+                      + "annotated.txt"
 
+        out_handle = open(output_file, 'w')
+
+        fusions.to_csv(
+            out_handle,
+            sep="\t",
+            index=0,
+            header=True
+        )
+
+        out_handle.close()
 
