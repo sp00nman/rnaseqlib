@@ -141,4 +141,5 @@ def load_fusion(input_file,
 
     return pd.read_csv(input_file,
                        sep="\t",
+                       header=0,
                        names=COLUMN_NAMES[tool])

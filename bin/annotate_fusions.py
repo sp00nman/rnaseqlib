@@ -69,11 +69,6 @@ if __name__ == '__main__':
     fusion_files = ts.load_tab_delimited(args.input_file)
     annotation = pd.read_csv(args.annotation_file, sep="\t")
 
-    # for each annotation run all samples !!!!
-    annotation = pd.read_csv(
-        args.annotation_file,
-        sep="\t")
-
     samples = pd.read_csv(
         args.input_file,
         sep="\t",
@@ -91,10 +86,18 @@ if __name__ == '__main__':
         tool = sample_sr.get(1)['tool']
         path_sample = sample_sr.get(1)['path']
 
+        print sample
+        print tool
+        print path_sample
+
         fusions = loadfuse.load_fusion(path_sample, tool)
 
-        type(annotation)
-        
+        # need to load again and again otherwise I get an
+        # error message....duuuhhh
+        annotation = pd.read_csv(
+            args.annotation_file,
+            sep="\t")
+
         for annotation in annotation.iterrows():
             # for each annotation...
             annotation_sr = pd.Series(annotation)
@@ -117,9 +120,22 @@ if __name__ == '__main__':
             annotation_dta = ts.read_annotation_file(file_location)
 
             if pair_single_distance == "pair":
-                print "true"
+
                 fusions[label_name] = fusions.apply(
-                    lambda row: matchf.filter_gene_pair(
+                    lambda row: matchf.annotate_gene_pair(
+                        row['gene_A'],
+                        row['gene_B'],
+                        ens2gs_conversion_table,
+                        annotation_dta,
+                        tool
+                    ),
+                    axis=1
+                )
+
+            if pair_single_distance == "single":
+
+                fusions[label_name] = fusions.apply(
+                    lambda row: matchf.annotate_single(
                         row['gene_A'],
                         row['gene_B'],
                         ens2gs_conversion_table,
