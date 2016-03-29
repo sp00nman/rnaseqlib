@@ -8,15 +8,16 @@ Annotate gene fusions from gene fusion detection tools
 --> GENE A ; GENE B ; CHR_A; CHR_B; POS_A; POS_B
 """
 
-import sys
 import argparse
-import re
 import logging
 import pandas as pd
+import gffutils
 
 from rnaseqlib.utils import tools as ts
 from rnaseqlib.dragonball import load_fusion_output_files as loadfuse
 from rnaseqlib.dragonball import match_fusions as matchf
+from rnaseqlib.dragonball import gene_gene_distance as ggdis
+from rnaseqlib.dragonball import get_biotype as gbio
 from rnaseqlib.utils import convert_gene_ids as cv
 
 
@@ -38,6 +39,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--output_dir', required=False, type=str,
         help="Path to output directory.")
+    # resources
+    parser.add_argument(
+        '--gtf_dbfile', required=False, type=str,
+        help='gtf file (transformed to database with gffutils)')
     parser.add_argument(
         '--id_conversion', required=False, type=str,
         help='Conversion table. Ensembl ids to genesymbols')
@@ -66,19 +71,44 @@ if __name__ == '__main__':
     # start analysis workflow & logging
     logging.info("Annotate fusions from fusion tools for RNA-seq.")
 
-    fusion_files = ts.load_tab_delimited(args.input_file)
-    annotation = pd.read_csv(args.annotation_file, sep="\t")
+    ## load resources ##
 
+    # loaf fusion sample file
+    #fusion_files = ts.load_tab_delimited(args.input_file)
     samples = pd.read_csv(
         args.input_file,
         sep="\t",
-        names=["uniq_sample_id", "tool", "path"])
+        names=["uniq_sample_id",
+               "tool", "path"])
 
-    # load resources
+    # load annotations
+    annotation = pd.read_csv(
+        args.annotation_file, sep="\t")
+
+    # load id conversion table
     ens2gs_conversion_table = cv.read_ensgene_genesymb(
-        args.id_conversion
-    )
+        args.id_conversion)
 
+    # load gtf database file
+    # this is done at this step, in order to avoid reading it again and
+    # again for each sample....
+    gtfdb = gffutils.FeatureDB(
+        args.gtf_dbfile, keep_order=True)
+
+    gene_version = {}
+
+    for gene in gtfdb.features_of_type('gene'):
+        # gencode version 7 uses ensembl ids with version
+        # number for each gene/transcript (eg. ENSG00000096968.8)
+        # need to create a hash table that stores the "raw"
+        # ensembl id together with the gene/transcript version
+        # number; this will later be used to query for that gene
+        # within the database...sooo stupid...
+        primary_key = gene.id
+        (ensembl, version_num) = primary_key.split(".")
+        gene_version[ensembl] = version_num
+
+    ## start iterations for each sample ##
     for sample in samples.iterrows():
 
         sample_sr = pd.Series(sample)
@@ -99,6 +129,7 @@ if __name__ == '__main__':
             sep="\t")
 
         for annotation in annotation.iterrows():
+
             # for each annotation...
             annotation_sr = pd.Series(annotation)
             label = annotation_sr.get(1)['label']
@@ -108,18 +139,14 @@ if __name__ == '__main__':
             filter_annotate = annotation_sr.get(1)['filter_annotate']
             file_location = annotation_sr.get(1)['file_location']
 
-            #prints
-            print label
-            print gene_position
-            print pair_single_distance
-            print source
-            print file_location
-            print filter_annotate
             label_name = label + "_" + source
-            # read in annotation file
-            annotation_dta = ts.read_annotation_file(file_location)
+
+            print label_name
 
             if pair_single_distance == "pair":
+
+                # read annotation file
+                annotation_dta = ts.read_annotation_file(file_location)
 
                 fusions[label_name] = fusions.apply(
                     lambda row: matchf.annotate_gene_pair(
@@ -134,6 +161,9 @@ if __name__ == '__main__':
 
             if pair_single_distance == "single":
 
+                # read annotation file
+                annotation_dta = ts.read_annotation_file(file_location)
+
                 fusions[label_name] = fusions.apply(
                     lambda row: matchf.annotate_single(
                         row['gene_A'],
@@ -145,9 +175,41 @@ if __name__ == '__main__':
                     axis=1
                 )
 
+            if pair_single_distance == "distance":
+
+                fusions[label_name] = fusions.apply(
+                    lambda row: ggdis.min_dis_gene(
+                        row['gene_A'],
+                        row['gene_B'],
+                        ens2gs_conversion_table,
+                        tool,
+                        gtfdb,
+                        gene_version
+                    ),
+                    axis=1
+                )
+
+            if pair_single_distance == "biotype":
+
+                if label == "5_prime_biotype":
+                    gene = 'gene_A'
+                else:
+                    gene = 'gene_B'
+
+                fusions[label_name] = fusions.apply(
+                    lambda row: gbio.get_biotype(
+                        row[gene],
+                        gtfdb,
+                        tool,
+                        ens2gs_conversion_table,
+                        gene_version
+                    ),
+                    axis=1
+                )
+
         output_file = project_dir + "/" \
                       + args.project_name + "." \
-                      + sample + "_" \
+                      + sample + "_" + tool + "_"\
                       + "annotated.txt"
 
         out_handle = open(output_file, 'w')

@@ -41,3 +41,23 @@ def ensgene2genesymbol(tab_ensgene_genesymb,
         # keep gene_symbol if nothing was found
         ensgeneid = ensgene
     return ensgeneid
+
+
+def map_genes(conversion_table,
+              gene_a,
+              gene_b):
+    """
+    Questionable weather this function is necessary, seams like
+    an useless wrapper
+    :param conversion_table: genesymbol to ensid conversion
+    :param gene_a: upstream gene
+    :param gene_b: downstream gene
+    :return:
+    """
+
+    a = ensgene2genesymbol(
+        conversion_table, gene_a)
+    b = ensgene2genesymbol(
+        conversion_table, gene_b)
+
+    return a, b
