@@ -32,11 +32,16 @@ After read mapping and nominating potential fusion candidates a set of filters i
 + Evidence from visualization (IGV browser)
 
 **Biological filters**
+
+| DATABASE                  | DESCRIPTION                 | DATE   | COMMENT |
+| :------------------------ |:----------------------------|:-------|:--------|
+| [AceView](http://www.ncbi.nlm.nih.gov/IEB/Research/Acembly/index.html?human) database)|  readthrough  |   ?     | ? |
+| [ConjoinG database](http://metasystems.riken.jp/conjoing/) | readthrough |  ? | ? |
+| [CACG conjoined genes database](http://cgc.kribb.re.kr/map/) | readthrough | ? | ? | 
+| NCBI | readthrough | ? |  ? |
+
+
 + Removing fusions from healthy individuals
-+ Remove readthroughs
-  + [AceView](http://www.ncbi.nlm.nih.gov/IEB/Research/Acembly/index.html?human) database)
-  + [ConjoinG database](http://metasystems.riken.jp/conjoing/)
-  + [CACG conjoined genes database](http://cgc.kribb.re.kr/map/)
 + Removing pseudogenes
 + Removing ribosomal genes
 + Removing IMGT/HLA genes
