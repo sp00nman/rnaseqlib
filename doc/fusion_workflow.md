@@ -35,23 +35,25 @@ After read mapping and nominating potential fusion candidates a set of filters i
 
 | DATABASE                  | DESCRIPTION                 | DATE   | COMMENT |
 | :------------------------ |:----------------------------|:-------|:--------|
+| healthy defuse | n = ? healthy granulocytes processed with defuse | ? | ? |
+| healthy tophat-fusion | n = ? healthy granulocytes processed with tophat-fusion | ? | ? | 
+| healthy soapfuse | n = ? healthy granulocytes processed with soapfuse | ? | ? | 
 | [AceView](http://www.ncbi.nlm.nih.gov/IEB/Research/Acembly/index.html?human) database)|  readthrough  |   ?     | ? |
 | [ConjoinG database](http://metasystems.riken.jp/conjoing/) | readthrough |  ? | ? |
 | [CACG conjoined genes database](http://cgc.kribb.re.kr/map/) | readthrough | ? | ? | 
-| NCBI | readthrough | ? |  ? |
+| NCBI | readthrough | ? |  ? | ? |
+| pseudogene - [GENCODE] (http://www.gencodegenes.org/releases/19.html) | ? | ? | ? | 
+| non protein coding - [GENCODE] (http://www.gencodegenes.org/releases/19.html) | ? | ? | ? | 
 
+**Annotation**
 
-+ Removing fusions from healthy individuals
-+ Removing pseudogenes
-+ Removing ribosomal genes
-+ Removing IMGT/HLA genes
-  + [IMGT/HLA database](http://www.ebi.ac.uk/ipd/imgt/hla/)
-+ Annotating known fusions
-  + [COSMIC database](http://cancer.sanger.ac.uk/cancergenome/projects/cosmic/)
-  + [TICdb database](http://www.unav.es/genetica/TICdb/)
-  + [ChimerDB 2.0 database literature-based annotation](http://ercsb.ewha.ac.kr/FusionGene/)
-  + [Cancer Genome Project (CGP) translocations database](http://www.sanger.ac.uk/genetics/CGP/Census/)
-  + [Mitelman Database of Chromosome Aberrations in Cancer](http://cgap.nci.nih.gov/Chromosomes/Mitelman.)
+| DATABASE                  | DESCRIPTION                 | DATE   | COMMENT |
+| :------------------------ |:----------------------------|:-------|:--------|
+| [TICdb database](http://www.unav.es/genetica/TICdb/) |    |   ?     | ? |
+| [Mitelman Database of Chromosome Aberrations in Cancer](http://cgap.nci.nih.gov/Chromosomes/Mitelman.) |    |   ?     | ? |
+| [COSMIC database](http://cancer.sanger.ac.uk/cancergenome/projects/cosmic/) |    |   ?     | ? |
+| [ChimerDB 2.0 database literature-based annotation](http://ercsb.ewha.ac.kr/FusionGene/) | ? | ? | ? | 
+
 
 **Additional filters**
 + [Viruses/bacteria/phages genomes database (from the NCBI database)](ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/ (required)
