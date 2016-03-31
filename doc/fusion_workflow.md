@@ -21,10 +21,11 @@ After read mapping and nominating potential fusion candidates a set of filters i
 + Filter by the number of encompassing and spanning reads (aka supporting reads)
 
 **Technical artefact filters**
+
 | DATABASE                  | DESCRIPTION                 | DATE   | COMMENT |
 | :------------------------ |:----------------------------|:-------|:--------|
-| [encode](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | mapability; 50-kmer | ? | ? |
-| [encode_dac](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | blacklisted regions; 50-kmer | ? | ? |
+| [encode](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | mapability (50-kmer) | ? | ? |
+| [encode_dac](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | blacklisted regions | ? | ? |
 | [encode_duke](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | blacklisted regions | ? | ? |
 
 
@@ -55,7 +56,7 @@ After read mapping and nominating potential fusion candidates a set of filters i
 
 **Additional filters**
 + Removing fusions, which partner genes belong to the same family
-+ [Viruses/bacteria/phages genomes database (from the NCBI database)](ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/ (required)
++ [Viruses/bacteria/phages genomes database (from the NCBI database)](ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/ (required))
 + Evidence from visualization (IGV browser)
 
 Summary table of filters used by fusion detection algorithms.
