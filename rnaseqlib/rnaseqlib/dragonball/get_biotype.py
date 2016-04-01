@@ -32,6 +32,8 @@ def get_biotype(gene,
         gene_fromdb = gtfdb[gene + "." + gene_version[gene]]
 
     except KeyError:
+        # write KE if ensembl id was not found in database
+        # usually that happens if ensembl ids get deprecated...
         biotype = "KE"
 
     else:  # no error occurred

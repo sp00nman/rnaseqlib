@@ -10,7 +10,7 @@ import pandas as pd
 DEFUSE_COLUMN = [
     "cluster_id",
     "splitr_sequence",
-    "splitr_count",
+    "splitr_count", # originally splitr_count
     "splitr_span_pvalue",
     "splitr_pos_pvalue",
     "splitr_min_pvalue",
@@ -46,7 +46,7 @@ DEFUSE_COLUMN = [
     "gene_strand2",
     "genome_breakseqs_percident",
     "genomicbreakpoint_A",  # originally genomic_break_pos1
-    "genomicbreakpoint_B", # originally genomic_break_pos2
+    "genomicbreakpoint_B",  # originally genomic_break_pos2
     "genomic_strand1",
     "genomic_strand2",
     "interchromosomal",
@@ -64,7 +64,7 @@ DEFUSE_COLUMN = [
     "read_through",
     "repeat_proportion1",
     "repeat_proportion2",
-    "span_count",
+    "span_count",  # originally span_count
     "span_coverage1",
     "span_coverage2",
     "span_coverage_max",
@@ -72,7 +72,7 @@ DEFUSE_COLUMN = [
     "splice_score",
     "splicing_index1",
     "splicing_index2",
-    "probability"
+    "score"  # originally probability
 ]
 
 TOPHATFUSION_COLUMN = [
@@ -83,9 +83,9 @@ TOPHATFUSION_COLUMN = [
     "gene_B", # originally pos2_gene
     "chr_B", # originally pos2_chr
     "genomicbreakpoint_B", # originally pos2_breakpoint
-    "nr_reads_span_fusion_x",
-    "mate_pairs_support_x",
-    "mate_pairs_span_fusion_x",
+    "splitr_count", # originally nr_reads_span_fusion_x
+    "mate_pairs_support_x", # what's that??
+    "span_count", # originally mate_pairs_span_fusion_x
     "score",
     "chr",
     "orientation",
@@ -109,20 +109,20 @@ TOPHATFUSION_COLUMN = [
 SOAPFUSE_COLUMN = [
     "gene_A", # originally up_gene
     "up_tran",
-    "genomicbreakpoint_A", # originally up_chr
+    "chr_A", # originally up_chr
     "up_strand",
     "up_Tran_pos",
     "genomicbreakpoint_A", # originally up_Genome_pos
     "up_loc",
     "gene_B", # originally dw_gene
     "dw_tran",
-    "chrB", # originally up_chr
+    "chr_B", # originally dw_chr
     "dw_strand",
     "dw_Tran_pos",
     "genomicbreakpoint_B", # originally dw_Genome_pos
     "dw_loc",
-    "Span_reads_num",
-    "Junc_reads_num"
+    "span_count",  # originally Span_reads_num
+    "splitr_count"  # originally Junc_reads_num
 ]
 
 COLUMN_NAMES = {'defuse': DEFUSE_COLUMN ,

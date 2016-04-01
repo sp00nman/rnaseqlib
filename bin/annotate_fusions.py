@@ -12,13 +12,17 @@ import argparse
 import logging
 import pandas as pd
 import gffutils
+import pyBigWig
+import pybedtools
 
 from rnaseqlib.utils import tools as ts
+from rnaseqlib.utils import convert_gene_ids as cv
 from rnaseqlib.dragonball import load_fusion_output_files as loadfuse
 from rnaseqlib.dragonball import match_fusions as matchf
 from rnaseqlib.dragonball import gene_gene_distance as ggdis
 from rnaseqlib.dragonball import get_biotype as gbio
-from rnaseqlib.utils import convert_gene_ids as cv
+from rnaseqlib.dragonball import get_mapability as getmap
+from rnaseqlib.dragonball import filter_fusions as ffus
 
 
 if __name__ == '__main__':
@@ -47,6 +51,15 @@ if __name__ == '__main__':
         '--id_conversion', required=False, type=str,
         help='Conversion table. Ensembl ids to genesymbols')
 
+    # hard cut off filters
+    parser.add_argument(
+        '--min_num_split_reads', required=False, type=str,
+        help="Minimum amount of split reads.")
+    parser.add_argument(
+        '--min_num_span_reads', required=False, type=str,
+        help="Minimum amount of spanning reads."
+    )
+
     # hardware specific options
     parser.add_argument(
         '--num_cpus', dest='num_cpus', required=False, help='Number of cpus.')
@@ -73,13 +86,12 @@ if __name__ == '__main__':
 
     ## load resources ##
 
-    # loaf fusion sample file
+    # load fusion sample file
     #fusion_files = ts.load_tab_delimited(args.input_file)
     samples = pd.read_csv(
         args.input_file,
         sep="\t",
-        names=["uniq_sample_id",
-               "tool", "path"])
+        names=["uniq_sample_id", "tool", "path"])
 
     # load annotations
     annotation = pd.read_csv(
@@ -134,7 +146,7 @@ if __name__ == '__main__':
             annotation_sr = pd.Series(annotation)
             label = annotation_sr.get(1)['label']
             gene_position = annotation_sr.get(1)['gene_position']
-            pair_single_distance = annotation_sr.get(1)['pair_single_distance']
+            mode = annotation_sr.get(1)['mode']
             source = annotation_sr.get(1)['source']
             filter_annotate = annotation_sr.get(1)['filter_annotate']
             file_location = annotation_sr.get(1)['file_location']
@@ -143,7 +155,7 @@ if __name__ == '__main__':
 
             print label_name
 
-            if pair_single_distance == "pair":
+            if mode == "pair":
 
                 # read annotation file
                 annotation_dta = ts.read_annotation_file(file_location)
@@ -159,7 +171,7 @@ if __name__ == '__main__':
                     axis=1
                 )
 
-            if pair_single_distance == "single":
+            if mode == "single":
 
                 # read annotation file
                 annotation_dta = ts.read_annotation_file(file_location)
@@ -175,7 +187,7 @@ if __name__ == '__main__':
                     axis=1
                 )
 
-            if pair_single_distance == "distance":
+            if mode == "distance":
 
                 fusions[label_name] = fusions.apply(
                     lambda row: ggdis.min_dis_gene(
@@ -189,7 +201,7 @@ if __name__ == '__main__':
                     axis=1
                 )
 
-            if pair_single_distance == "biotype":
+            if mode == "biotype":
 
                 if label == "5_prime_biotype":
                     gene = 'gene_A'
@@ -206,6 +218,50 @@ if __name__ == '__main__':
                     ),
                     axis=1
                 )
+            if mode == "mapability_sequence_pos":
+
+                # read in bigwig file
+                bw = pyBigWig.open(file_location)
+
+                if label == "5_prime_mapability":
+                    chrom = 'chr_A'
+                    breakpoint = 'genomicbreakpoint_A'
+                else:
+                    chrom = 'chr_B'
+                    breakpoint = 'genomicbreakpoint_B'
+
+                fusions[label_name] = fusions.apply(
+                    lambda row: getmap.get_mean_values(
+                        bw,
+                        row[chrom],
+                        row[breakpoint]
+                    ),
+                    axis=1
+                )
+
+            if mode == "blacklisted_regions":
+
+                # read in bedfile
+                bedfile = pybedtools.BedTool(file_location)
+
+                if label == "5_prime_exclude":
+                    chrom = 'chr_A'
+                    breakpoint = 'genomicbreakpoint_A'
+                else:
+                    chrom = 'chr_B'
+                    breakpoint = 'genomicbreakpoint_B'
+
+                fusions[label_name] = fusions.apply(
+                    lambda row: getmap.intersect_genomic_breakpoint(
+                        bedfile,
+                        row[chrom],
+                        row[breakpoint]
+                    ),
+                    axis=1
+                )
+        # add column FILTER:
+        fusions['FILTER'] = fusions.apply(
+            lambda row: ffus.match_citeria(row), axis=1)
 
         output_file = project_dir + "/" \
                       + args.project_name + "." \
