@@ -77,15 +77,15 @@ DEFUSE_COLUMN = [
 
 TOPHATFUSION_COLUMN = [
     "sample",
-    "gene_A", # originally pos1_gene
-    "chr_A", # originally pos1_chr
-    "genomicbreakpoint_A", # originally pos1_breakpoint
-    "gene_B", # originally pos2_gene
-    "chr_B", # originally pos2_chr
-    "genomicbreakpoint_B", # originally pos2_breakpoint
-    "splitr_count", # originally nr_reads_span_fusion_x
-    "mate_pairs_support_x", # what's that??
-    "span_count", # originally mate_pairs_span_fusion_x
+    "gene_A",  # originally pos1_gene
+    "chr_A",  # originally pos1_chr
+    "genomicbreakpoint_A",  # originally pos1_breakpoint
+    "gene_B",  # originally pos2_gene
+    "chr_B",  # originally pos2_chr
+    "genomicbreakpoint_B",  # originally pos2_breakpoint
+    "splitr_count",  # originally nr_reads_span_fusion_x
+    "span_count",  # originally mate_pairs_support_x
+    "mate_pairs_span_fusion_x",
     "score",
     "chr",
     "orientation",

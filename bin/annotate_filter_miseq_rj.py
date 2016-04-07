@@ -381,7 +381,7 @@ if __name__ == '__main__':
                 input_file=project_dir + "/"
                            + args.project_name + "."
                            + uniq_sample_id + "."
-                           + file_ext['mae'],
+                           + file_ext['proud_pv'],
                 output_file=project_dir + "/" + args.project_name + "."
                             + uniq_sample_id + "."
                             + file_ext['vcf2table'],
@@ -431,16 +431,26 @@ if __name__ == '__main__':
             variant_table['GENESYMBOL'] = genesymbols
 
             # only select canonical transcript
-            variant_table['CANONICAL_TRANSCRIPT_AAChange'] = \
-                variant_table.apply(lambda row: goi.select_canonical_transcript(
-                    row['AAChange.ensGene'],
-                    canonical_transcripts=canonical_transcripts,
-                    sep=","), axis=1
-                )
+            canonical_transcripts = \
+                variant_table.apply(
+                        lambda row: pd.Series(
+                            goi.select_canonical_transcript(
+                                row['AAChange.ensGene'],
+                                canonical_transcripts=canonical_transcripts,
+                                sep=",")), axis=1)
+
+            canonical_transcripts = canonical_transcripts.rename(
+                columns={0:'CANONICAL_TRANSCRIPT_AAChange',
+                         1:'IS_CANONICAL_TRANSCRIPT'})
+
+            variant_table_merge = pd.concat(
+                    [variant_table, canonical_transcripts], axis=1)
 
             # split AAChange_ensGene by ':'
-            variant_table_split = variant_table[
-                'CANONICAL_TRANSCRIPT_AAChange'].apply(lambda row: pd.Series(row.split(':')))
+            variant_table_split = variant_table_merge[
+                    'CANONICAL_TRANSCRIPT_AAChange'].apply(
+                    lambda row: pd.Series(row.split(':')))
+
             # rename columns
             variant_table_split.columns = [
                 'ENSEMBL_GENEID',
@@ -451,7 +461,7 @@ if __name__ == '__main__':
 
             # concatenate the dataframes
             variant_table_concat = pd.concat(
-                [variant_table,variant_table_split], axis=1)
+                [variant_table_merge,variant_table_split], axis=1)
 
             # select specific columns
             variant_table_concat = variant_table_concat[SELECT_COLUMNS]

@@ -9,7 +9,8 @@ import pybedtools
 def get_mean_values(
         bigwigfile,
         chr,
-        breakpoint):
+        breakpoint,
+        tool):
     """
 
     :param bigwigfile: file in BIGWIG format
@@ -18,10 +19,14 @@ def get_mean_values(
     :return: str? mapability score X for region [x-50 to x+50]
     """
 
-    chromosome = "chr" + str(chr)
+    if tool == "defuse":
+        chromosome = "chr" + str(chr)
+
+    else:
+        chromosome = str(chr)
 
     mean_score = bigwigfile.stats(
-        chromosome,
+        str(chromosome),
         breakpoint - 50,
         breakpoint + 50)
 
@@ -31,7 +36,8 @@ def get_mean_values(
 def intersect_genomic_breakpoint(
         bedfile,
         chr,
-        breakpoint):
+        breakpoint,
+        tool):
     """
 
     :param bedfile: file in BED format
@@ -39,8 +45,11 @@ def intersect_genomic_breakpoint(
     :param breakpoint: genomic breakpoint of gene X
     :return: str with intersected region
     """
+    if tool == "defuse":
+        query = "chr" + str(chr) + " " + str(breakpoint) + " " + str(breakpoint + 1)
+    else:
+        query = str(chr) + " " + str(breakpoint) + " " + str(breakpoint + 1)
 
-    query = "chr" + str(chr) + " " + str(breakpoint) + " " + str(breakpoint + 1)
     interval = pybedtools.BedTool(query, from_string=True)
     result = bedfile.intersect(interval)
 

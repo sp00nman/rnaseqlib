@@ -18,7 +18,8 @@ def bam_stat(input_file,
     cmd_bam_stat = "bam_stat.py"
     cmd_bam_stat += " -i " + input_file
     cmd_bam_stat += " -q " + str(map_qual)
-    cmd_bam_stat += " >" + output_file
+    cmd_bam_stat += " >>" + output_file
+    cmd_bam_stat += " 2>&1"  # redirects stdout and stderror to output file
 
     return cmd_bam_stat
 

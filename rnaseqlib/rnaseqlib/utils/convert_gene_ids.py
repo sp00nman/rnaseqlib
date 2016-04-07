@@ -1,42 +1,55 @@
 """
-this module maps gene symols or refseq ids to stable ensembl ids
+Helper function to map ensembl gene ids to genesymbols and vice versa.
 ensgene - ensembl gene id (eg. ENSG....)
 genesymb - gene symbols (eg. JAK2)
-tab_ensgene_genesymb - hash table containing mapping information
-                       for converting gene symbols to ensembl gene ids
-tab_ensgene_refseqid - hast table containing
 """
 
 from rnaseqlib.utils import tools as ts
 
 
-def read_ensgene_genesymb(filename):
+def read_ensgene_genesymb(filename,
+                          mode="ensgene2genesymbol"):
     """
-    path = /home/illumina/Fiorella/annotation
-    filename = tab_combined_ensgene_genesymb.txt
-    #file structure
+    *file structure*
     ensgene_id      gene_symbol
     ENSG00000000003 TSPAN6
-    #key|value key=ensgeneid | value=gene symbol
+
+    *for mode=="ensgene2genesymbol"*
+    key|value key=ensgeneid | value=gene symbol
+
+    *for mode=="genesymbol2ensgene"
+
+    :param filename: name of filename with matching ids
+    :param mode: [ensgene2genesymbol, genesymbol2ensgene]
+    :return:dictionary with
     """
     ensgene_genesymb = ts.load_tab_delimited(filename)
     tab_ensgene_genesymb = {}
 
-    for line in ensgene_genesymb:
-        ensgeneid = line[0]
-        genesymb = line[1]
-        tab_ensgene_genesymb[ensgeneid] = genesymb
+    if mode == "ensgene2genesymbol":
+        for line in ensgene_genesymb:
+            ensgeneid = line[0]
+            genesymb = line[1]
+            tab_ensgene_genesymb[ensgeneid] = genesymb
+
+    if mode == "genesymbol2ensgene":
+        for line in ensgene_genesymb:
+            ensgeneid = line[0]
+            genesymb = line[1]
+            tab_ensgene_genesymb[genesymb] = ensgeneid
+
     return tab_ensgene_genesymb
 
 
 def ensgene2genesymbol(tab_ensgene_genesymb,
-                        ensgene):
+                       ensgene):
     """
-    function for converting gene symbols to en
-    careful: LOC541471 changed
+    Matches either genesymbols or ensids to its corresponding partner
+    careful: LOC541471 changed ?
     """
     if ensgene in tab_ensgene_genesymb:
         ensgeneid = tab_ensgene_genesymb[ensgene]
+
     else:
         # keep gene_symbol if nothing was found
         ensgeneid = ensgene

@@ -22,15 +22,17 @@ def annotate_gene_pair(gene_a,
         (gene_a, gene_b) = cv.map_genes(conversion_table, gene_a, gene_b)
 
     g = '\t'.join(sorted([gene_a, gene_b]))
+    print g
 
     return "1" if g in gene_pairs else 0
 
 
-def annotate_single(gene_a,
-                    gene_b,
-                    conversion_table,
-                    gene_single,
-                    tool):
+def annotate_single(
+        gene_a,
+        gene_b,
+        conversion_table,
+        gene_single,
+        tool):
     """
 
     :param gene_a: upstream gene
