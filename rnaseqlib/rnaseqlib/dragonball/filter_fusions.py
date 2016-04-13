@@ -19,18 +19,25 @@ def match_citeria(
 
     filter_annotation = []
 
-    if row['score'] < min_score:
+    if tool == "defuse" or tool== "tophatfusion":
 
-        filter_annotation.append("score")
+        if row['score'] < min_score:
+
+            filter_annotation.append("score")
 
     if int(row['splitr_count']) <= int(min_num_split_reads) or \
         int(row['span_count']) <= int(min_num_span_reads):
 
         filter_annotation.append("read_evidence")
 
-    if int(row['readthrough_fusioncatcher']) is 1 or \
-        int(row['readthrough_ncbi']) is 1 or \
-        int(row['readthrough_conjoing']) is 1:
+    if (int(row['readthrough_fusioncatcher']) is 1 or
+        int(row['readthrough_ncbi']) is 1 or
+        int(row['readthrough_conjoing']) is 1) and \
+        (int(row['known_fusion_ticdb']) is 0):
+
+        # the and statement tries to catch fusion like
+        # FIP1L1-PDGFRA that are annotated as readthrough fusions,
+        # but are mediated through chromosomal deletions
 
         filter_annotation.append("readthrough")
 
@@ -56,6 +63,10 @@ def match_citeria(
         int(row['healthy_defuse_a']) is 1:
 
         filter_annotation.append("healthy")
+
+    if int(row['healthy_validation_pcr']) is 1:
+
+        filter_annotation.append("healthy_pcr")
 
     if row['3_prime_biotype_ensembl'] != "protein_coding" and \
         row['5_prime_biotype_ensembl'] != "protein_coding":
@@ -95,6 +106,18 @@ def match_citeria(
     if row['5_prime_biotype_ensembl'] is "KE" or \
         row['3_prime_biotype_ensembl'] is "KE":
         filter_annotation.append("deprecated_identifier")
+
+    if row['HLA_imgt|hla_db'] is 'A' or \
+        row['HLA_imgt|hla_db'] is 'B' or \
+        row['HLA_imgt|hla_db'] is 'A,B':
+
+        filter_annotation.append("HLA_gene")
+
+    if row['HB_ensembl'] is 'A' or \
+        row['HB_ensembl'] is 'B' or \
+        row['HB_ensembl'] is 'A,B':
+
+        filter_annotation.append("HB_gene")
 
     if not filter_annotation:
         filter_annotation.append("PASS")

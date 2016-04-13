@@ -106,7 +106,7 @@ TOPHATFUSION_COLUMN = [
     "read_depth"
 ]
 
-SOAPFUSE_COLUMN = [
+SOAPFUSE_INITIAL_FUSION_COLUMN = [
     "gene_A", # originally up_gene
     "up_tran",
     "chr_A", # originally up_chr
@@ -124,6 +124,24 @@ SOAPFUSE_COLUMN = [
     "span_count",  # originally Span_reads_num
     "splitr_count"  # originally Junc_reads_num
 ]
+
+SOAPFUSE_COLUMN = [
+    "gene_A", # originally up_gene
+    "chr_A", # originally up_chr
+    "up_strand",
+    "genomicbreakpoint_A", # originally up_Genome_pos
+    "up_loc",
+    "gene_B",  # originally dw_gene
+    "chr_B",  # originally dw_chr
+    "dw_strand",
+    "genomicbreakpoint_B", # originally dw_Genome_pos
+    "dw_loc",
+    "span_count", # originally Span_reads_num
+    "splitr_count", # originally Junc_reads_num
+    "Fusion_Type",
+    "down_fusion_part_frame-shift_or_not"
+]
+
 
 COLUMN_NAMES = {'defuse': DEFUSE_COLUMN ,
                 'tophatfusion': TOPHATFUSION_COLUMN,
