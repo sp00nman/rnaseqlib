@@ -53,12 +53,14 @@ if __name__ == '__main__':
 
     # hard cut off filters
     parser.add_argument(
-        '--min_num_split_reads', required=False, type=str,
+        '--min_num_split_reads', required=False, type=int,
         help="Minimum amount of split reads.")
     parser.add_argument(
-        '--min_num_span_reads', required=False, type=str,
-        help="Minimum amount of spanning reads."
-    )
+        '--min_num_span_reads', required=False, type=int,
+        help="Minimum amount of spanning reads.")
+    parser.add_argument(
+        '--score', required=False, type=float,
+        help="Score (p-value or any other score.)")
 
     # hardware specific options
     parser.add_argument(
@@ -99,7 +101,8 @@ if __name__ == '__main__':
 
     # load id conversion table
     ens2gs_conversion_table = cv.read_ensgene_genesymb(
-        args.id_conversion)
+        args.id_conversion,
+        mode="genesymbol2ensgene")
 
     # load gtf database file
     # this is done at this step, in order to avoid reading it again and
@@ -218,6 +221,7 @@ if __name__ == '__main__':
                     ),
                     axis=1
                 )
+
             if mode == "mapability_sequence_pos":
 
                 # read in bigwig file
@@ -234,7 +238,8 @@ if __name__ == '__main__':
                     lambda row: getmap.get_mean_values(
                         bw,
                         row[chrom],
-                        row[breakpoint]
+                        row[breakpoint],
+                        tool
                     ),
                     axis=1
                 )
@@ -255,14 +260,46 @@ if __name__ == '__main__':
                     lambda row: getmap.intersect_genomic_breakpoint(
                         bedfile,
                         row[chrom],
-                        row[breakpoint]
+                        row[breakpoint],
+                        tool
                     ),
                     axis=1
                 )
+
         # add column FILTER:
         fusions['FILTER'] = fusions.apply(
-            lambda row: ffus.match_citeria(row), axis=1)
+            lambda row: ffus.match_citeria(
+                row,
+                tool,
+                args.min_num_split_reads,
+                args.min_num_span_reads,
+                min_score=args.score),
+            axis=1)
 
+        # add sample name
+        if tool == "defuse" or tool == "soapfuse":
+            fusions['UNIQ_SAMPLE_ID'] = sample
+
+        else:
+            fusions['UNIQ_SAMPLE_ID'] = fusions['sample']
+
+        # add description of tool used
+        fusions['DETECTION_SOFTWARE'] = tool
+
+        # ranking:
+        if tool == "defuse" or tool == "tophatfusion":
+
+            fusions_sorted = fusions.sort(['score'], ascending=0)
+
+        else:
+            fusions_sorted = fusions.sort(['splitr_count', 'span_count'],
+                                          ascending=[False, False])
+            fusions_sorted['score'] = 0
+
+        # reset the index
+        fusions_reset = fusions_sorted.reset_index()
+
+        # output file with all columns
         output_file = project_dir + "/" \
                       + args.project_name + "." \
                       + sample + "_" + tool + "_"\
@@ -270,10 +307,51 @@ if __name__ == '__main__':
 
         out_handle = open(output_file, 'w')
 
-        fusions.to_csv(
+        fusions_reset.to_csv(
             out_handle,
             sep="\t",
-            index=0,
+            index=True,
+            index_label="RANKING",
+            header=True
+        )
+
+        out_handle.close()
+
+        #output file only with common columns
+
+        # for defuse I need to take gene_name1 & gene_name2
+
+        if tool == "defuse":
+            fusions_reset['gene_A'] = fusions_reset['gene_name1']
+            fusions_reset['gene_B'] = fusions_reset['gene_name2']
+
+        fusions_common = fusions_reset[[
+            'DETECTION_SOFTWARE',
+            'UNIQ_SAMPLE_ID',
+            'gene_A',
+            'gene_B',
+            'chr_A',
+            'chr_B',
+            'genomicbreakpoint_A',
+            'genomicbreakpoint_B',
+            'splitr_count',
+            'span_count',
+            'score',
+            'FILTER'
+        ]]
+
+        output_file = project_dir + "/" \
+                      + args.project_name + "." \
+                      + sample + "_" + tool + "_"\
+                      + "common_annotated.txt"
+
+        out_handle = open(output_file, 'w')
+
+        fusions_common.to_csv(
+            out_handle,
+            sep="\t",
+            index=True,
+            index_label="RANKING",
             header=True
         )
 

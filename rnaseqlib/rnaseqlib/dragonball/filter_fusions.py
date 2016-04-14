@@ -51,7 +51,6 @@ def match_citeria(
         filter_annotation.append("false_pos")
 
     if int(row['healthy_tophatfusion']) is 1 or \
-        int(row['healthy_soapfuse_specific']) is 1 or \
         int(row['healthy_soapfuse']) is 1 or \
         int(row['healthy_fusionmap_less_cons']) is 1 or \
         int(row['healthy_fusionmap']) is 1 or \
@@ -61,6 +60,9 @@ def match_citeria(
         int(row['healthy_defuse_c8']) is 1 or \
         int(row['healthy_defuse_c5']) is 1 or \
         int(row['healthy_defuse_a']) is 1:
+
+        # I removed healthy_soapfuse_specific; it's now
+        # combined with healthy soapfuse
 
         filter_annotation.append("healthy")
 
