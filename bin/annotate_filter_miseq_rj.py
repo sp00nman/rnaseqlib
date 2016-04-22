@@ -222,9 +222,19 @@ if __name__ == '__main__':
             uniq_sample_id = vcf_file[0]
             patient_id = vcf_file[1]
             path2vcf = vcf_file[2]
+            filename, file_extension = os.path.splitext(path2vcf)
+
+            if re.search(r".gz", file_extension):
+                cmd = "gunzip -c " + path2vcf + " >" \
+                      + project_dir + "/" + uniq_sample_id + ".vcf"
+                status = ts.run_cmd(
+                    message=stdout_msg['unzip'],
+                    command=cmd,
+                    debug=args.debug
+                )
 
             cmd = annovar_rb.run_annovar(
-                vcf_file=path2vcf,
+                vcf_file=project_dir + "/" + uniq_sample_id + ".vcf",
                 protocol="ensGene,"
                         + "cytoBand,"
                         + "genomicSuperDups,"
