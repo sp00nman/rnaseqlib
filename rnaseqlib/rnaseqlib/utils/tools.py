@@ -136,11 +136,13 @@ def load_sorted(filename):
     :return:
     """
     file_obj = open(filename, 'r')
+
     try:
         all_content = ['\t'.join(sorted(line.rstrip('\n').split('\t')[:2]))
-                       for line in file(filename, 'r')]
+                       for line in file_obj]
     finally:
         file_obj.close()
+
     return set(all_content)
 
 

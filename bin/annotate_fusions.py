@@ -160,19 +160,35 @@ if __name__ == '__main__':
 
             if mode == "pair":
 
-                # read annotation file
-                annotation_dta = ts.read_annotation_file(file_location)
+                # exception for soapfuse
+                # careful, gene_A  & gene_B are genesymbols !!! not ENSIDS....
+                if label_name == "healthy_soapfuse":
+                    soapfuse_df = pd.read_csv(file_location, sep="\t")
+                    soapfuse_df["FUSION"] = soapfuse_df['gene_A'] + "_" + soapfuse_df['gene_B']
 
-                fusions[label_name] = fusions.apply(
-                    lambda row: matchf.annotate_gene_pair(
-                        row['gene_A'],
-                        row['gene_B'],
-                        ens2gs_conversion_table,
-                        annotation_dta,
-                        tool
-                    ),
-                    axis=1
-                )
+                    fusions[label_name] = fusions.apply(
+                        lambda row: matchf.get_occurrence(
+                            row['gene_A'],
+                            row['gene_B'],
+                            soapfuse_df
+                        ),
+                        axis=1
+                    )
+
+                else:
+                    # read annotation file
+                    annotation_dta = ts.read_annotation_file(file_location)
+
+                    fusions[label_name] = fusions.apply(
+                        lambda row: matchf.annotate_gene_pair(
+                            row['gene_A'],
+                            row['gene_B'],
+                            ens2gs_conversion_table,
+                            annotation_dta,
+                            tool
+                        ),
+                        axis=1
+                    )
 
             if mode == "single":
 

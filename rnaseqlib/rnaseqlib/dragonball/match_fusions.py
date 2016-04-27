@@ -57,3 +57,20 @@ def annotate_single(
         to_return = 0
 
     return to_return
+
+
+def get_occurrence(
+        gene_a,
+        gene_b,
+        df):
+
+    string2match = gene_a + "_" + gene_b
+
+    if not df[df['FUSION'] == string2match].empty:
+        matching_fusions = df[df['FUSION'] == string2match]
+        string2return = ';'.join(map(str, list(matching_fusions['NUM_OCCURRENCES_IN_COHORT'])))
+
+    else:
+        string2return = 0
+
+    return string2return
