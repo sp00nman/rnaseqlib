@@ -1,4 +1,4 @@
-Detection and filtering of fusions with RNA-seq
+Annotation and filtering of fusions with RNA-seq
 ====================================================
 
 ### Annotating fusions
@@ -53,6 +53,14 @@ ANNOTATION_FILE (tab separated)
 |:----------------|:------------------------------------|:---------------------------|:------|:-----|:-----|
 | eg. readthrough    | OR [gene,position] | OR [pair,single,biotype,blacklisted_regions] | eg.conjoing | OR [filter,annotate] | eg. pat/to/annotation_database
 
+GTF_DBFILE
+
+GTF file generated as explained [here](https://pythonhosted.org/gffutils/#create-the-database)
+
+ID_CONVERSION
+
+eg. ENSG00000186716 BCR (tab separated)
+
 --> structure of the database file for source
 
 **pair** eg. ENSG00000186716 ENSG00000143322 (tab separated) 
@@ -60,7 +68,8 @@ ANNOTATION_FILE (tab separated)
 **biotype** database file created as explained [here](https://pythonhosted.org/gffutils/#create-the-database)
 **blacklisted_regions** *.bigWig files
 
-**Annotation databases**
+
+### Annotation databases
 
 | DATABASE                  | DESCRIPTION                 | DATE (last access)   | SOURCE |
 | :------------------------ |:----------------------------|:-------|:--------|
@@ -74,7 +83,10 @@ ANNOTATION_FILE (tab separated)
 | [encode](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | mapability (50-kmer) | 2016-02 | blacklisted_regions |
 | [encode_dac](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | The DAC Blacklisted Regions aim to identify a comprehensive set of regions in the human genome that have anomalous, unstructured, high signal/read counts in next gen sequencing experiments independent of cell line and type of experiment | 2016-02 | blacklisted regions |
 | [encode_duke](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | The Duke Excluded Regions track displays genomic regions for which mapped sequence tags were filtered out before signal generation and peak calling for Open Chromatin: DNaseI HS and FAIRE tracks| 2016-02 | blacklisted regions |
-| [ChimerDB 2.0 database literature-based annotation](http://ercsb.ewha.ac.kr/FusionGene/) | ChimerDB is designed to be a knowledgebase of fusion transcripts collected from various public resources such as the Sanger CGP, OMIM, PubMed, and Mitelman’s database | 2016-02 | pair | 
+| [ChimerDB 2.0 database literature-based annotation](http://ercsb.ewha.ac.kr/FusionGene/) | ChimerDB is designed to be a knowledgebase of fusion transcripts collected from various public resources such as the Sanger CGP, OMIM, PubMed, and Mitelman’s database | 2016-02 | pair |
+| [HLA] (http://hla.alleles.org/genes/) | List of genes within the HLA Region | 2016-2 | single |
+| [HB] (http://ensemble.org) | List of genes part of the hemoglobin complex. | 2016-02 | single | 
+| paralogs, fully, partially and same strand overlapping genes | List of genes processed by [fusioncatcher](https://github.com/ndaniel/fusioncatcher) ; ensembl version 72 | 2016-2 | pair |
 
 TODOs:
 
@@ -84,7 +96,4 @@ TODOs:
 + [CACG conjoined genes database](http://cgc.kribb.re.kr/map/)
 + [Viruses/bacteria/phages genomes database (from the NCBI database)](ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/ (required))
 + [sequence similarity search](http://www.ebi.ac.uk/Tools/sss/)
-
-
-
 
