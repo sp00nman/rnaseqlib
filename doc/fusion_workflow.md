@@ -109,7 +109,8 @@ Fusions are tagged as follows:
 
 | TAG                | DESCRIPTION (fusion is tagged if...) | 
 | :------------------|:----------------------------|
-| score | defuse score < 0.8 or tophat score < 0 |
+| score | score below threshold [for defuse < 0.8 or tophatfusion < 0, empty for soapfuse] |
+| read_evidence | number of split read and spanning reads are below threshold [1,2]| 
 | readthrough | fusions appears in any of the above mentioned databases for readthroughs  |
 | false_pos | fusions is present in any of these [paralogs, fully, partially and same strand overlapping genes] databases provided by fusioncatcher  |
 | healthy | fusion is present in in-house generated databases for fusions detected in healthy individuals|
