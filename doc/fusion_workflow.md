@@ -1,92 +1,90 @@
 Detection and filtering of fusions with RNA-seq
 ====================================================
 
-###Software requirements
-+ [defuse](http://sourceforge.net/projects/defuse/)
-+ [tophat-fusion](http://ccb.jhu.edu/software/tophat/fusion_index.html)
-+ [SOAPfuse](http://soap.genomics.org.cn/soapfuse.html)
+### Annotating fusions
 
-###Python dependencies 
-```bash
-pandas
-gffutils
-pyBigWig
+
+### Usage 
+```
+usage: annotate_fusions.py [-h] [--project_name PROJECT_NAME]
+                           [--input_file INPUT_FILE]
+                           [--annotation_file ANNOTATION_FILE]
+                           [--output_dir OUTPUT_DIR] [--gtf_dbfile GTF_DBFILE]
+                           [--id_conversion ID_CONVERSION]
+                           [--min_num_split_reads MIN_NUM_SPLIT_READS]
+                           [--min_num_span_reads MIN_NUM_SPAN_READS]
+                           [--score SCORE] [--num_cpus NUM_CPUS]
+
+Annotate fusions from fusion tools for RNA-seq.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --project_name PROJECT_NAME
+                        Name of the project directory.
+  --input_file INPUT_FILE
+                        Input file with the format (tab separated):
+                        tool[defuse,tophatfusion,soapfuse] path/to/file
+  --annotation_file ANNOTATION_FILE
+                        Annotation file with the format (tab separated):
+                        database[see github] /path/to/annotation_file
+                        [pairs(A_B)/individual(A,B) [annotate/filter]
+  --output_dir OUTPUT_DIR
+                        Path to output directory.
+  --gtf_dbfile GTF_DBFILE
+                        gtf file (transformed to database with gffutils)
+  --id_conversion ID_CONVERSION
+                        Conversion table. Ensembl ids to genesymbols
+  --min_num_split_reads MIN_NUM_SPLIT_READS
+                        Minimum amount of split reads.
+  --min_num_span_reads MIN_NUM_SPAN_READS
+                        Minimum amount of spanning reads.
+  --score SCORE         Score (p-value or any other score.)
 ```
 
-###Post-filtering steps
+INPUT_FILE (tab separated)
 
-After read mapping and nominating potential fusion candidates a set of filters is applied based on biological and technical indications. 
+| UNIQ_SAMPLE_ID | TOOL                               | PATH_TO_FUSION_OUTPUTFILE | 
+|:----------------|:------------------------------------|:---------------------------|
+| eg. MPN0001    | OR [tophatfusion, defuse, soapfuse] | eg. /path/to/file             |
 
-**Scoring filters**
-+ Filter by the number of encompassing and spanning reads (aka supporting reads)
+ANNOTATION_FILE (tab separated)
 
-**Technical artefact filters**
+| label | gene_position                               | mode | source | filter_annotate | file_location |
+|:----------------|:------------------------------------|:---------------------------|:------|:-----|:-----|
+| eg. readthrough    | OR [gene,position] | OR [pair,single,biotype,blacklisted_regions] | eg.conjoing | OR [filter,annotate] | eg. pat/to/annotation_database
 
-| DATABASE                  | DESCRIPTION                 | DATE   | COMMENT |
+--> structure of the database file for source
+
+**pair** eg. ENSG00000186716 ENSG00000143322 (tab separated) 
+**single** eg. ENSG00000186716
+**biotype** database file created as explained [here](https://pythonhosted.org/gffutils/#create-the-database)
+**blacklisted_regions** *.bigWig files
+
+**Annotation databases**
+
+| DATABASE                  | DESCRIPTION                 | DATE (last access)   | SOURCE |
 | :------------------------ |:----------------------------|:-------|:--------|
-| [encode](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | mapability (50-kmer) | ? | ? |
-| [encode_dac](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | blacklisted regions | ? | ? |
-| [encode_duke](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | blacklisted regions | ? | ? |
+| healthy defuse | n=25 healthy individuals; RNA-seq on granulocytes processed with defuse | 2015 | pair |
+| healthy tophatfusion | n=25 healthy individuals; RNA-seq on granulocyted processed with tophatfusion | 2015 | pair | 
+| healthy soapfuse | n=25 healthy individuals; RNA-seq on granulocytes processed with soapfuse | 2015 | pair | 
+| [ConjoinG database](http://metasystems.riken.jp/conjoing/download/) | ConjoinG is a database of 800 Conjoined Genes identified in the Human Genome. |  2009-10-13 | pair |
+| [TICdb database](http://www.unav.es/genetica/allseqs_TICdb.txt) | TICdb is a database of Translocation breakpoints In Cancer. It contains 1,374 fusion sequences found in human tumors, involving 431 different genes. |   2013-08     | pair |
+| [NCBI](ftp://ftp.ncbi.nih.gov/gene/DATA/gene_group.gz) | Report of genes and their relationships to other genes | 2014_07 | pair |
+| 5' or 3' prime biotype gene - [GENCODE] (http://www.gencodegenes.org/releases/19.html) | extract biotype for 5' or 3' gene with GENCODE release 19 | 2015 | biotype | 
+| [encode](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | mapability (50-kmer) | 2016-02 | blacklisted_regions |
+| [encode_dac](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | The DAC Blacklisted Regions aim to identify a comprehensive set of regions in the human genome that have anomalous, unstructured, high signal/read counts in next gen sequencing experiments independent of cell line and type of experiment | 2016-02 | blacklisted regions |
+| [encode_duke](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability) | The Duke Excluded Regions track displays genomic regions for which mapped sequence tags were filtered out before signal generation and peak calling for Open Chromatin: DNaseI HS and FAIRE tracks| 2016-02 | blacklisted regions |
+| [ChimerDB 2.0 database literature-based annotation](http://ercsb.ewha.ac.kr/FusionGene/) | ChimerDB is designed to be a knowledgebase of fusion transcripts collected from various public resources such as the Sanger CGP, OMIM, PubMed, and Mitelman’s database | 2016-02 | pair | 
 
+TODOs:
 
-**Biological filters**
-
-| DATABASE                  | DESCRIPTION                 | DATE   | COMMENT |
-| :------------------------ |:----------------------------|:-------|:--------|
-| healthy defuse | n = ? healthy granulocytes processed with defuse | ? | ? |
-| healthy tophat-fusion | n = ? healthy granulocytes processed with tophat-fusion | ? | ? | 
-| healthy soapfuse | n = ? healthy granulocytes processed with soapfuse | ? | ? | 
-| [AceView](http://www.ncbi.nlm.nih.gov/IEB/Research/Acembly/index.html?human) database)|  readthrough  |   ?     | ? |
-| [ConjoinG database](http://metasystems.riken.jp/conjoing/) | readthrough |  ? | ? |
-| [CACG conjoined genes database](http://cgc.kribb.re.kr/map/) | readthrough | ? | ? | 
-| NCBI | readthrough | ? |  ? | ? |
-| pseudogene - [GENCODE] (http://www.gencodegenes.org/releases/19.html) | ? | ? | ? | 
-| non protein coding - [GENCODE] (http://www.gencodegenes.org/releases/19.html) | ? | ? | ? | 
-
-
-**Annotation**
-
-| DATABASE                  | DESCRIPTION                 | DATE   | COMMENT |
-| :------------------------ |:----------------------------|:-------|:--------|
-| [TICdb database](http://www.unav.es/genetica/TICdb/) |    |   ?     | ? |
-| [Mitelman Database of Chromosome Aberrations in Cancer](http://cgap.nci.nih.gov/Chromosomes/Mitelman.) |    |   ?     | ? |
-| [COSMIC database](http://cancer.sanger.ac.uk/cancergenome/projects/cosmic/) |    |   ?     | ? |
-| [ChimerDB 2.0 database literature-based annotation](http://ercsb.ewha.ac.kr/FusionGene/) | ? | ? | ? | 
-
-
-**Additional filters**
-+ Removing fusions, which partner genes belong to the same family
++ [Mitelman Database of Chromosome Aberrations in Cancer](http://cgap.nci.nih.gov/Chromosomes/Mitelman.)
++ [COSMIC database](http://cancer.sanger.ac.uk/cancergenome/projects/cosmic/)
++ [AceView](http://www.ncbi.nlm.nih.gov/IEB/Research/Acembly/index.html?human) database)
++ [CACG conjoined genes database](http://cgc.kribb.re.kr/map/)
 + [Viruses/bacteria/phages genomes database (from the NCBI database)](ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/ (required))
-+ Evidence from visualization (IGV browser)
-
-Summary table of filters used by fusion detection algorithms.
-+ [The structure of state-of-art gene fusion-finder algorithms. M.Becutti, Aug, 2013](https://www.oapublishinglondon.com/article/617)
-![image](../img/filters.png)
-
-###What can be improved?
-
-####PROPOSAL 1
-#####Motivation/Literature research
-+ "Another important group of gene fusions was associated with breakpoints of low-level copy number changes, involving both gains and deletions. These are interesting in the sense that they represent the types of fusion events leading to gene activation with no association with gene amplifications...Fifth, in the vast majority of the fusions (82%), at least one partner gene was located at a copy number breakpoint as revealed by aCGH, indicating that fusion gene formation is closely associated with unbalanced genomic rearrangements, particularly high-level amplifications" [Identification of fusion genes in breast cancer by paired-end RNA-sequencing.](http://genomebiology.com/content/12/1/R6)
-
-+ [Identification of somatically acquired rearrangements in cancer using genome-wide massively parallel paired-end sequencing.](http://www.nature.com/ng/journal/v40/n6/fig_tab/ng.128_F3.html)
++ [sequence similarity search](http://www.ebi.ac.uk/Tools/sss/)
 
 
-#####Idea
-+ Can we use public data/database on germline structural variant calls to filter for gene fusions
-  + Most biological database filter for gene IDs (only some databases offer breakpoint positions as well, but most don't)
-  + SNP arrays have far too low resolution, CNV information from WGS data could potentially be beneficial for this approach
-
-####PROPOSAL 2
-+ Detection and filtering of fusions is followed by manually looking at the sequence and blasting the fusion junction to the reference genome. Very often these sequences fall within repetitive sequences, or the 5' and 3' region of the fusion is very similar
-
-#####Idea
-  + Implement a repetitive sequence filter
-    + UCSC Mappability Track, Repeat Masker Tracks 
-    + [Duke Exclude Regions](http://hgdownload.cse.ucsc.edu/goldenPath/hg18/encodeDCC/wgEncodeMapability/) 
-    + [DAC Blacklisted Regions](http://hgwdev.cse.ucsc.edu/cgi-bin/hgFileUi?db=hg19&g=wgEncodeMapability)
-    + [1000 Genomes Masks](http://www.1000genomes.org/announcements/genome-accessibility-information-now-available-1000-genomes-browser-2012-09-06)
-  + Implement a 5' 3' homology filter
-  + [sequence similarity search](http://www.ebi.ac.uk/Tools/sss/)
 
 
