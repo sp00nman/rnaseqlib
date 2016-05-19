@@ -2,6 +2,9 @@ Annotation and filtering of fusions with RNA-seq
 ====================================================
 
 ### Annotating fusions
+The following python script was designed to annotate fusions and in later steps 
+to enrich for novel and somatic fusions. Databases used for annotation are listed
+below.
 
 
 ### Usage 
@@ -97,3 +100,21 @@ TODOs:
 + [Viruses/bacteria/phages genomes database (from the NCBI database)](ftp://ftp.ncbi.nlm.nih.gov/genomes/Viruses/ (required))
 + [sequence similarity search](http://www.ebi.ac.uk/Tools/sss/)
 
+### Filtering fusions
+
+Fusions are tagged as follows:
+
+| TAG                | DESCRIPTION (fusion is tagged if...) | 
+| :------------------|:----------------------------|
+| score | defuse score < 0.8 or tophat score < 0 |
+| readthrough | fusions appears in any of the above mentioned databases for readthroughs  |
+| false_pos | fusions is present in any of these [paralogs, fully, partially and same strand overlapping genes] databases provided by fusioncatcher  |
+| healthy | fusion is present in in-house generated databases for fusions detected in healthy individuals|
+| no_protein | both fusion partner genes have a biotype marked as non-protein|
+| biotype_pseudogene | one of the fusion partner is annotated as pseudogene and has a mapability score of less than 0.5|
+| mapability | one of the fusion genes has a mapability score of less then 0.1 |
+| blacklisted_region | fusions falls within blacklisted regions |
+| distance_lt1000 | fusion partner genes are less 1000 base pairs apart |
+| HLA_gene | one of the fusion partners is part of HLA gene family |
+| HB_gene | one of the fusion partners is part of HB gene family |
+| PASS | fusions passes all of the above filters |
