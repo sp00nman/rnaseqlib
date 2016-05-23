@@ -5,7 +5,7 @@ A simple collection of modules for analysis of RNA-seq data with focus on:
 
 + [Annotation and filtering of fusions detected with RNA-seq.](doc/fusion_workflow.md)
 + [Calling and annotating variants with RNA-seq.](doc/variant_calling.md)
-+ Estimating an X-inactivation score (XCI-score) from variants called on X-chromosome with RNA-seq
++ [Estimating an X-inactivation score (XCI-score) from variants called on X-chromosome with RNA-seq] (doc/xci_skew.mkd)
 
 ### Software requirements
 --> specific for fusion detection
