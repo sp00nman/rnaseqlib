@@ -1,1 +1,14 @@
+Estimating XCI score from variant allele frequencies called on RNA-seq level
+-------
+
+### Usage
+There is no proper R package yet. Please load the required are functions as follows
+``` r
+source(clonality.R)
+```
+And follow the instructions
+
+
+
+
 
