@@ -1,23 +1,10 @@
 ### Workflow for calling variants optimized for RNA sequencing data.
 
-Workflow is well described [here] (http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq)
+The following steps are well described [here] (http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq)
+[alignment,star2pass,replace_rg,duplicates,index,splitntrim,indel,bqsr,gatk, gatk_flag]
+Part of the workflow are in-house implementations:
+[hrun_flag, nind_flag,annovar,selection]
 
-## Software requirements
- 
-+ [STAR] (https://github.com/alexdobin/STAR)
-+ [Samtools] (http://samtools.sourceforge.net/)
-+ [GATK] (https://www.broadinstitute.org/gatk/)
-+ [ANNOVAR](http://annovar.openbioinformatics.org/en/latest/)
-+ [Bedtools](https://github.com/arq5x/bedtools2)
-
-##### Python modules
-+ [PyVCF]()
-+ [pandas](https://github.com/pydata/pandas)
-
-##### Environment variables
-+ ```$TMPDIR``` (path to temporary directory)  
-+ ```$NGS_GATK``` (path to gatk executables) 
-+ ```$NGS_PICARD``` (path to picard executables)
 
 ## Usage
 
