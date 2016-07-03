@@ -16,7 +16,7 @@ def reorder_sam(inbamfile,
     """
 
     cmd_reorder = "java -%s -Djava.io.tmpdir=$TMPDIR " \
-                  "-jar $NGS_PICARD/ReorderSam.jar " \
+                  "-jar $NGS_PICARD/picard.jar ReorderSam" \
                   "INPUT=%s " \
                   "OUTPUT=%s " \
                   "REFERENCE=%s.fa" % (heap_mem,
@@ -39,7 +39,7 @@ def sort_bam(inbamfile,
     """
 
     cmd_sort = "java -%s -Djava.io.tmpdir=$TMPDIR " \
-               "-jar $NGS_PICARD/SortSam.jar " \
+               "-jar $NGS_PICARD/picard.jar SortSam " \
                "INPUT=%s " \
                "OUTPUT=%s " \
                "SORT_ORDER=%s" % (heap_mem,
@@ -58,7 +58,7 @@ def replace_readgroups(input_file,
     """
 
     cmd_replace = "java -%s -Djava.io.tmpdir=$TMPDIR " \
-                  "-jar $NGS_PICARD/AddOrReplaceReadGroups.jar " \
+                  "-jar $NGS_PICARD/picard.jar AddOrReplaceReadGroups " \
                   "I=%s " \
                   "O=%s " \
                   "SO=coordinate " \
@@ -86,7 +86,7 @@ def remove_duplicates(inbamfile,
     """
 
     cmd_rmdup = "java -%s -Djava.io.tmpdir=$TMPDIR " \
-                "-jar $NGS_PICARD/MarkDuplicates.jar " \
+                "-jar $NGS_PICARD/picard MarkDuplicates " \
                 "INPUT=%s " \
                 "OUTPUT=%s " \
                 "METRICS_FILE=%s " \
