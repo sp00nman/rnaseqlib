@@ -5,6 +5,7 @@ import re
 import os
 import logging
 import pandas as pd
+import gffutils
 
 from rnaseqlib.utils import tools as ts
 from rnaseqlib.varcall import annovar_runnables as annovar_rb
@@ -12,6 +13,8 @@ from rnaseqlib.varcall import gatk_runnables as gatk
 from rnaseqlib.varcall import filter_vcf as fv
 from rnaseqlib.utils import convert_gene_ids as cv
 from rnaseqlib.varcall import extract_genes_of_interest as goi
+# used to annotate biotypes
+from rnaseqlib.dragonball import get_biotype as gbio
 
 
 VCF_TABLE = \
@@ -89,8 +92,10 @@ SELECT_COLUMNS = \
              "PL",
              "GENESYMBOL",
              "ENSEMBL_GENEID",
+             "Gene.ensGene",
              "ENSEMBL_TRANSCRIPTID",
              "Func.ensGen",
+             "GENE_BIOTYPE",
              "ExonicFunc.ensGene",
              "QUAL",
              "QD",
@@ -147,9 +152,9 @@ if __name__ == '__main__':
                         help='Debug level')
     parser.add_argument('--stage', dest='stage', required=False,
                         help='Limit job submission to a particular '
-                             'analysis stage.[process_all,annovar,selection,'
-                             'clonalityXchr, vcf2table_rj,'
-                             'vcf2table_dna, reformat_rj]')
+                             'analysis stage.[process_all,annovar,[selection|'
+                             'clonalityXchr|specific_chr], [vcf2table_rj|'
+                             'vcf2table_dna], reformat_rj]')
     parser.add_argument('--project_name', required=False, type=str,
                         help="name of the project")
     parser.add_argument('--patient_vcf', required=False, type=str,
@@ -169,6 +174,12 @@ if __name__ == '__main__':
     parser.add_argument('--mae_genes', required=False, type=str,
                         help='Table of monoallelic expressed genes based on'
                              'a study by Savova et al., Nature Genetics, 2015')
+    parser.add_argument('--gtf_dbfile', required=False, type=str,
+                        help='gtf file (transformed to database with gffutils)')
+
+    # specify which chromosome to extract
+    parser.add_argument('--chr_num', required=False, type=str,
+                        help='chromosome number [1-22;X,Y]')
 
     # annovar specific options
     parser.add_argument('--annovar', required=False, type=str,
@@ -211,6 +222,25 @@ if __name__ == '__main__':
 
     # start analysis workflow & logging
     logging.info("Annotate and select vcf files.")
+
+    # load gtf database file
+    # this is done at this step, in order to avoid reading it again and
+    # again for each sample....
+    if (args.gtf_dbfile):
+        gtfdb = gffutils.FeatureDB(args.gtf_dbfile, keep_order=True)
+
+    gene_version = {}
+
+    for gene in gtfdb.features_of_type('gene'):
+        # gencode version 7 uses ensembl ids with version
+        # number for each gene/transcript (eg. ENSG00000096968.8)
+        # need to create a hash table that stores the "raw"
+        # ensembl id together with the gene/transcript version
+        # number; this will later be used to query for that gene
+        # within the database...sooo stupid...
+        primary_key = gene.id
+        (ensembl, version_num) = primary_key.split(".")
+        gene_version[ensembl] = version_num
 
     # start workflow
     if re.search(r"process_all|annovar", args.stage):
@@ -312,6 +342,31 @@ if __name__ == '__main__':
                 mode="CLONXCHR"
             )
 
+    if re.search(r"process_all|specific_chr", args.stage):
+
+        vcfs = ts.load_tab_delimited(args.patient_vcf)
+
+        for vcf_file in vcfs:
+
+            uniq_sample_id = vcf_file[0]
+            patient_id = vcf_file[1]
+            path2vcf = vcf_file[2]
+
+            print uniq_sample_id
+
+            fv.filter_vcf(
+                input_file=project_dir + "/"
+                        + args.project_name + "."
+                        + uniq_sample_id + "."
+                        + "hg19_multianno.vcf",
+                file_prefix=project_dir + "/"
+                        + args.project_name + "."
+                        + uniq_sample_id,
+                file_suffix=file_ext['inhouse'],
+                mode="CHR",
+                chr_num="1"
+            )
+
     if re.search(r"process_all|mae_autosomes", args.stage):
 
         vcfs = ts.load_tab_delimited(args.patient_vcf)
@@ -367,6 +422,17 @@ if __name__ == '__main__':
 
     if re.search(r"process_all|vcf2table_dna", args.stage):
 
+        # default project method
+        prj_method = "proud_pv"
+
+        # change to chromosome number
+        if re.search(r"specific_chr", args.stage):
+            prj_method = "chr" + args.chr_num
+
+        elif re.search(r"clonalityXchr", args.stage):
+            # in theory this should become obsolete
+            prj_method = "chrX"
+
         vcfs = ts.load_tab_delimited(args.patient_vcf)
 
         for vcf_file in vcfs:
@@ -375,23 +441,12 @@ if __name__ == '__main__':
             patient_id = vcf_file[1]
             path2vcf = vcf_file[2]
 
-            # TODO: automatic change from proud_pv to clonewars...
-            #input_file=project_dir + "/"
-            #    + args.project_name + "."
-            #    + uniq_sample_id + "."
-            #    + file_ext['clonewars']
-
-            # normally
-            # input_file=project_dir + "/"
-            #+ args.project_name + "."
-            # + uniq_sample_id + "."
-            #+ file_ext['proud_pv'],
-
             cmd = gatk.var2table_dna(
                 input_file=project_dir + "/"
                            + args.project_name + "."
                            + uniq_sample_id + "."
-                           + file_ext['proud_pv'],
+                           + prj_method + "."
+                           + file_ext["filtered_vcf"],
                 output_file=project_dir + "/" + args.project_name + "."
                             + uniq_sample_id + "."
                             + file_ext['vcf2table'],
@@ -472,6 +527,16 @@ if __name__ == '__main__':
             # concatenate the dataframes
             variant_table_concat = pd.concat(
                 [variant_table_merge,variant_table_split], axis=1)
+
+            # add biotype information
+            # eg. is gene a pseudogene ?
+            variant_table_concat['GENE_BIOTYPE'] = variant_table_concat.apply(
+                lambda row: gbio.get_biotype(
+                    row['Gene.ensGene'],
+                    gtfdb,
+                    gene_version,
+                    tool=False,
+                    conversion_table=False), axis=1)
 
             # select specific columns
             variant_table_concat = variant_table_concat[SELECT_COLUMNS]

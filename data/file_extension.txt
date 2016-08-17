@@ -34,8 +34,6 @@ annovar:            annovar.hg19_multianno.vcf
 inhouse:            filtered_annovar_hg19_multianno.vcf
 vcf2table:          vcf2table.txt
 targetlist:         patient_mutation.table
-proud_pv:           exonic_splicing.filtered_annovar_hg19_multianno.vcf
-clonewars:          clonxchr.filtered_annovar_hg19_multianno.vcf
+filtered_vcf:       filtered_annovar_hg19_multianno.vcf
 counts:             feature_counts.txt
 simple_sort:        sorted
-mae:                mae.filtered_annovar_hg19_multianno.vcf
