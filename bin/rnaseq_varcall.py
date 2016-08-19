@@ -4,6 +4,7 @@ import argparse
 import re
 import os
 import logging
+import os.path
 
 from rnaseqlib.utils import tools as ts
 from rnaseqlib.utils import parse_annovar as pa
@@ -29,10 +30,11 @@ if __name__ == '__main__':
     parser.add_argument('--stage', dest='stage', required=False,
                         help='Limit job submission to a particular '
                              'analysis stage.'
-                        '[process_all,alignment,star2pass,extract,duplicates,'
-                        'index,splitntrim,indel,bqsr,bamfo,samtools,gatk,'
-                        'gatk_flag,hrun_flag,nind_flag,variant_flag,annovar,'
-                        'selection]')
+                        '[process_all,alignment,star2pass,replace_rg,'
+                        'duplicates,index,splitntrim,indel,bqsr,'
+                        '[bamfo_varcall,samtools_varcall,gatk_varcall],'
+                        'gatk_flag,hrun_flag,nind_flag,variant_flag,'
+                        'annovar,selection]')
     parser.add_argument('--project_name', required=False, type=str,
                         help="name of the project")
     parser.add_argument('--read1', required=False, type=str,
@@ -619,8 +621,7 @@ if __name__ == '__main__':
     if re.search(r"process_all|variant_flag", args.stage):
 
         sample_file = project_dir + "/" \
-                    + args.project_name + "." \
-                    + file_ext['nindel']
+        + args.project_name + "." + file_ext['nindel']
 
         vf.annotate_variants(
             anno_file=args.flag_variants,
@@ -635,8 +636,13 @@ if __name__ == '__main__':
     if re.search(r"process_all|annovar", args.stage):
 
         sample_file = project_dir + "/" \
-                     + args.project_name + "." \
-                     + file_ext['varflag']
+        + args.project_name + "." \
+        + file_ext['varflag']
+
+        if not os.path.exists(sample_file):
+            sample_file = project_dir + "/" \
+            + args.project_name + "." \
+            + file_ext['nindel']
 
         cmd = annovar_rb.run_annovar(
             vcf_file=sample_file,
@@ -683,5 +689,6 @@ if __name__ == '__main__':
             input_file=sample_file,
             file_prefix=project_dir + "/" \
                         + args.project_name,
-            file_suffix=file_ext['inhouse']
+            file_suffix=file_ext['inhouse'],
+            mode="SOMATIC"
         )
