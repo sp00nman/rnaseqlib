@@ -22,6 +22,21 @@ import vcf
 import pandas as pd
 
 
+CC_ALL_HEADER=["CHROM",
+               "POS",
+               "REF",
+               "ALT",
+               "Gene_ensGene",
+               "GENESYMBOL",
+               "UNIQ_SAMPLE_ID_COHORT",
+               "QUAL_COHORT",
+               "DP_COHORT",
+               "QD_COHORT",
+               "ExonicFunc_ensGene_COHORT",
+               "GT_COHORT",
+               "AD_COHORT"]
+
+
 def annotate_variants(anno_file,
                       input_file,
                       output_file,
@@ -36,19 +51,7 @@ def annotate_variants(anno_file,
     variant_table = pd.read_csv(
         anno_file,
         sep="\t",
-        names=["CHROM",
-               "POS",
-               "REF",
-               "ALT",
-               "Gene_ensGene",
-               "GENESYMBOL",
-               "UNIQ_SAMPLE_ID_COHORT",
-               "QUAL_COHORT",
-               "DP_COHORT",
-               "QD_COHORT",
-               "ExonicFunc_ensGene_COHORT",
-               "GT_COHORT",
-               "AD_COHORT"],
+        names=CC_ALL_HEADER,
         header=True
     )
 

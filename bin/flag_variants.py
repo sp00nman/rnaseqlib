@@ -79,7 +79,7 @@ if __name__ == '__main__':
             patient_id = vcf_file[1]
             path2vcf = vcf_file[2]
 
-            cmd = gatk.variants2table(
+            cmd = gatk.var2table_tag(
                 input_file=path2vcf,
                 output_file=project_dir + "/" + args.project_name + "_"
                             + uniq_sample_id + "."
@@ -99,6 +99,7 @@ if __name__ == '__main__':
         output_file = project_dir + "/" + args.project_name + "_" \
                       + "variant_table.txt"
         vcfs = ts.load_tab_delimited(args.vcf2flag)
+        # appends all output to out_handle --> 'a' !!!!!
         out_handle = open(output_file, 'a')
 
         for vcf_file in vcfs:
@@ -106,13 +107,13 @@ if __name__ == '__main__':
             patient_id = vcf_file[1]
 
             variant_table = pd.read_csv(
-            project_dir + "/" + args.project_name + "_" \
-            + uniq_sample_id + ".vcf2table",
-            sep="\t",
-            names=["CHROM", "POS", "REF", "ALT", "QUAL",
+                project_dir + "/" + args.project_name + "_" \
+                + uniq_sample_id + ".vcf2table.txt",
+                sep="\t",
+                names=["CHROM", "POS", "REF", "ALT", "QUAL",
                    "DP", "QD", "Gene_ensGene", "ExonicFunc_ensGene",
                    "GT", "AD"],
-            header=True
+                header=True
             )
 
             # add patient information
@@ -141,9 +142,9 @@ if __name__ == '__main__':
 
     if re.search(r"all|count", args.stage):
 
-        input_file = project_dir + "/" + args.project_name + \
+        output_file = project_dir + "/" + args.project_name + \
                     "_" + "count_occurences.txt"
-        out_handle = open(input_file, 'w')
+        out_handle = open(output_file, 'w')
 
         mutation_table = pd.read_csv(
             project_dir + "/" + args.project_name + "_" + "variant_table.txt",
@@ -178,11 +179,19 @@ if __name__ == '__main__':
             print uniq_sample_id
             variant_table = pd.read_csv(
                 project_dir + "/" + args.project_name + "_" \
-                + uniq_sample_id + ".vcf2table",
+                + uniq_sample_id + ".vcf2table.txt",
                 sep="\t",
-                names=["CHROM", "POS", "REF", "ALT", "QUAL",
-                       "DP", "QD", "Gene_ensGene", "ExonicFunc_ensGene",
-                       "GT", "AD"],
+                names=["CHROM",
+                       "POS",
+                       "REF",
+                       "ALT",
+                       "QUAL",
+                       "DP",
+                       "QD",
+                       "Gene_ensGene",
+                       "ExonicFunc_ensGene",
+                       "GT",
+                       "AD"],
                 header=True
             )
 
@@ -239,9 +248,3 @@ if __name__ == '__main__':
         )
 
         out_handle.close()
-
-
-
-
-
-
