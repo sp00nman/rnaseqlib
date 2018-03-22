@@ -4,6 +4,7 @@
 #'@param filter.samples A vector with name of healthy samples\code{filter.samples}
 #'@param alt.count Filter criteria, minimum number of alternate reads \code{alt.count}
 #'@param qualitybydepth Filter criteria, minimum quality by depth for variants \code{qualitybydepth}
+#'@param vaf.healthy Minimum variant allele frequency required for healthy samples \code{vaf.healthy}
 #'@param verbose For trouble shooting \code {verbose}
 #'
 #'@return vector with annotations, comma separated
@@ -14,7 +15,7 @@
 #'
 #'@examples
 #'
-#'annotateVariants(rcm, filter.samples=c("C1", "C2"), alt.count=3, verbose=FALSE)
+#'annotateVariants(rcm, filter.samples=c("C1", "C2"), alt.count=3, vaf=0.4, verbose=FALSE)
 #'
 
 annotateVariants <- function(
@@ -22,6 +23,7 @@ annotateVariants <- function(
   filter.samples=healthy.samples,
   alt.count=2,
   qualitybydepth=2,
+  vaf.healthy=0.4,
   verbose=FALSE){
   
   # these filters are the same as used for the patient mutation matrix  
@@ -78,9 +80,9 @@ annotateVariants <- function(
   variants$X1000g2015feb_sas <- as.numeric(variants$X1000g2015feb_sas)
   variants$X1000g2015feb_afr <- as.numeric(variants$X1000g2015feb_afr)
   
-  # extract all variants that occur in healthy variants
+  # extract all variants that occur in healthy variants with minimum vaf
   # and filter for these
-  healthy.variants <- variants[variants$PLOTNAME %in% healthy.samples,]$CANONICAL_TRANSCRIPT_AAChange
+  healthy.variants <- variants[variants$PLOTNAME %in% healthy.samples & variants$VARIANT_FREQUENCY>=vaf.healthy,]$CANONICAL_TRANSCRIPT_AAChange
   
   #ALT.COUNT should be at larger than 2
   variants$ALT.COUNT <- sapply(variants$AD, function(x) strsplit(as.character(x), ",")[[1]][2])
