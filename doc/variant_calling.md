@@ -143,9 +143,10 @@ Databases used for annotation [ANNOVAR] (http://annovar.openbioinformatics.org/e
 ### [selection] [in progress...]
 Selection variants of interest (somatic & cancer relevant mutations):
 - FILTER: only keep 'PASS' annotation (remove all variants that did not pass filter criteria)
-- INFO: snp142Common with rs-number
-- INFO: 1000g2014oct_all with MAF>0.01
-- INFO: esp5400siv2_all with MAF>0.01
+- INFO: [snp142Common] exclude variants annotated as 'common'
+- INFO: [1000g2015feb_all] exclude variants with a MAF>0.01
+- INFO: [esp5400_all] exclude variants with a MAF>0.01
+- INFO: [esp6500siv2_all] exclude variants with MAF>0.01
 - INFO: ExonicFunc.ensGene = 'synonymous SNV'
 
 
