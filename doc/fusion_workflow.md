@@ -44,34 +44,31 @@ optional arguments:
   --score SCORE         Score (p-value or any other score.)
 ```
 
-INPUT_FILE (tab separated)
+#### [--input_file] (tab separated)
 
 | UNIQ_SAMPLE_ID | TOOL                               | PATH_TO_FUSION_OUTPUTFILE | 
 |:----------------|:------------------------------------|:---------------------------|
 | eg. MPN0001    | OR [tophatfusion, defuse, soapfuse] | eg. /path/to/file             |
 
-ANNOTATION_FILE (tab separated)
+#### [--annotation_file] (tab separated)
 
 | label | gene_position                               | mode | source | filter_annotate | file_location |
 |:----------------|:------------------------------------|:---------------------------|:------|:-----|:-----|
 | eg. readthrough    | OR [gene,position] | OR [pair,single,biotype,blacklisted_regions] | eg.conjoing | OR [filter,annotate] | eg. pat/to/annotation_database
 
-GTF_DBFILE
+#### [--gtf_dbfile]
 
 GTF file generated as explained [here](https://pythonhosted.org/gffutils/#create-the-database)
 
-ID_CONVERSION
+#### [--id_conversion]
 
 eg. ENSG00000186716 BCR (tab separated)
 
 --> structure of the database file for source
 
 **pair** eg. ENSG00000186716 ENSG00000143322 (tab separated) 
-
 **single** eg. ENSG00000186716
-
 **biotype** database file created as explained [here](https://pythonhosted.org/gffutils/#create-the-database)
-
 **blacklisted_regions** *.bigWig files
 
 
