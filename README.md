@@ -3,13 +3,15 @@ rnaseqlib
 
 A collection of Python modules & Rscripts for analysis of RNA-seq data for the following publication:
 ### Mutational Landscape of the Transcriptome Offers a Rich Neoantigen Resource for Immunotherapy of Myeloproliferative Neoplasms
-Fiorella Schischlik et al. 2018
+Schischlik *et al.* 2018 (in preparation)
 
 ### Software requirements
 #### `Fusion detection`
 + [defuse](http://sourceforge.net/projects/defuse/)
 + [tophat-fusion](http://ccb.jhu.edu/software/tophat/fusion_index.html)
 + [SOAPfuse](http://soap.genomics.org.cn/soapfuse.html)
++ [gffutils](https://pypi.python.org/pypi/gffutils) [for annotating fusions]
++ [pyBigWig](https://pypi.python.org/pypi/pyBigWig) [for annotating fusions]
 
 #### `Variant calling`
 + [STAR](https://github.com/alexdobin/STAR)
@@ -22,11 +24,9 @@ Fiorella Schischlik et al. 2018
 + [STAR](https://github.com/alexdobin/STAR)
 + [deboever-sf3b1-2015](https://github.com/cdeboever3/deboever-sf3b1-2015)
 
-#### `External Python modules`
+#### `Python modules (not specific for any workflow)`
 + [pandas](https://github.com/pydata/pandas) [required]
-+ [PyVCF](https://pypi.python.org/pypi/PyVCF) [optional; for variant calling]
-+ [gffutils](https://pypi.python.org/pypi/gffutils) [optional; for annotating fusions]
-+ [pyBigWig](https://pypi.python.org/pypi/pyBigWig) [optional; for annotating fusions]
++ [PyVCF](https://pypi.python.org/pypi/PyVCF) [required]
 
 #### `Environment variables used`
 + ```$TMPDIR``` (path to temporary directory)  
