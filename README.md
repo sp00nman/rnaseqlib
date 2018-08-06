@@ -33,9 +33,11 @@ Schischlik *et al.* 2018 (in preparation)
 + ```$NGS_GATK``` (path to gatk executables) 
 + ```$NGS_PICARD``` (path to picard executables)
 
-Specific workflows exits for:
-+ [Annotation and filtering of fusions detected with RNA-seq.](doc/fusion_workflow.md)
-+ [Calling and annotating variants with RNA-seq.](doc/variant_calling.md)
+### Implemented workflows
++ [Annotation and filtering of fusion genes. ](doc/fusion_workflow.md)
++ [Calling and annotating variants (SNVs & Indels).](doc/variant_calling.md)
++ [Differential splicing analysis.](doc/differential_splicing.md)
++ [Proposed workflow for neoantigen discovery.](doc/neoantigen_rna.md)
 
 
 ## License
