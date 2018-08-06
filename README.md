@@ -12,21 +12,21 @@ Fiorella Schischlik et al. 2018
 + [SOAPfuse](http://soap.genomics.org.cn/soapfuse.html)
 
 #### `Variant calling`
-+ [STAR] (https://github.com/alexdobin/STAR)
-+ [Samtools] (http://samtools.sourceforge.net/)
-+ [GATK] (https://www.broadinstitute.org/gatk/)
++ [STAR](https://github.com/alexdobin/STAR)
++ [Samtools](http://samtools.sourceforge.net/)
++ [GATK](https://www.broadinstitute.org/gatk/)
 + [ANNOVAR](http://annovar.openbioinformatics.org/en/latest/)
 + [Bedtools](https://github.com/arq5x/bedtools2)
 
 #### `Aberrant splicing`
-+ [STAR] (https://github.com/alexdobin/STAR)
-+ [deboever-sf3b1-2015] (https://github.com/cdeboever3/deboever-sf3b1-2015)
++ [STAR](https://github.com/alexdobin/STAR)
++ [deboever-sf3b1-2015](https://github.com/cdeboever3/deboever-sf3b1-2015)
 
 #### `External Python modules`
 + [pandas](https://github.com/pydata/pandas) [required]
 + [PyVCF](https://pypi.python.org/pypi/PyVCF) [optional; for variant calling]
 + [gffutils](https://pypi.python.org/pypi/gffutils) [optional; for annotating fusions]
-+ [pyBigWig] (https://pypi.python.org/pypi/pyBigWig) [optional; for annotating fusions]
++ [pyBigWig](https://pypi.python.org/pypi/pyBigWig) [optional; for annotating fusions]
 
 #### `Environment variables used`
 + ```$TMPDIR``` (path to temporary directory)  
