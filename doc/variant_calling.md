@@ -1,7 +1,8 @@
 ### Workflow for calling variants optimized for RNA sequencing data.
 
-The following steps are well described [here] (http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq)
+The following steps are well described [here](http://gatkforums.broadinstitute.org/discussion/3891/calling-variants-in-rnaseq)
 [alignment,star2pass,replace_rg,duplicates,index,splitntrim,indel,bqsr,gatk, gatk_flag]
+
 Part of the workflow are in-house implementations:
 [hrun_flag, nind_flag,annovar,selection]
 
