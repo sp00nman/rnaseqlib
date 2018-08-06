@@ -67,8 +67,11 @@ eg. ENSG00000186716 BCR (tab separated)
 --> structure of the database file for source
 
 **pair** eg. ENSG00000186716 ENSG00000143322 (tab separated) 
+
 **single** eg. ENSG00000186716
+
 **biotype** database file created as explained [here](https://pythonhosted.org/gffutils/#create-the-database)
+
 **blacklisted_regions** *.bigWig files
 
 
