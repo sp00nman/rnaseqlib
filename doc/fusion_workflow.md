@@ -1,10 +1,15 @@
-Annotation and filtering of fusions with RNA-seq
+Annotation and filtering of fusion genes with RNA-seq
 ====================================================
 
-### Annotating fusions
-The following python script was designed to annotate fusions and in later steps 
-to enrich for novel and somatic fusions. Databases used for annotation are listed
-below.
+### Python module 
+[dragonball](https://github.com/sp00nman/rnaseqlib/tree/master/rnaseqlib/rnaseqlib/dragonball)
+
+<img src="https://cdn.player.one/sites/player.one/files/styles/lg/public/2016/01/25/gotenandtrunksfusionss-dragon-ball-z.jpg" alt="overlapping" width="260" height="174">
+Image Credit: Marvicle/YouTube screencap
+
+### Annotating fusion genes
+The following python script annotates fusions and enriches for novel and somatic fusions. 
+Databases used for annotation are listed below.
 
 
 ### Usage 
