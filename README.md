@@ -2,8 +2,8 @@ rnaseqlib
 =========
 
 A collection of Python modules & Rscripts for analysis of RNA-seq data for the following publication:
-### Mutational Landscape of the Transcriptome Offers a Rich Neoantigen Resource for Immunotherapy of Myeloproliferative Neoplasms
-Schischlik *et al.* 2018 (in preparation)
+### Mutational Landscape of the Transcriptome Offers Putative Targets for Immunotherapy of Myeloproliferative Neoplasms.
+Fiorella Schischlik, Roland Jäger, Felix Rosebrock, Eva Hug, Michael Schuster, Raimund Holly, Elisabeth Fuchs, Jelena D Milosevic Feenstra, Edith Bogner, Bettina Gisslinger, Martin Schalling, Elisa Rumi, Daniela Pietra, Gottfried Fischer, Ingrid Faé, Loan Vulliard, Jörg Menche, Torsten Haferlach, Manja Meggendorfer, Anna Stengel, Christoph Bock, Mario Cazzola, Heinz Gisslinger, Robert Kralovics. May 2019, Blood 134(2) DOI: 10.1182/blood.2019000519
 
 ### Software requirements
 #### `Fusion detection`
